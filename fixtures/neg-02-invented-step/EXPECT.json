@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-02-invented-step",
+  "invention_class": "invented-next-step",
+  "expect_codes": [
+    "QUOTE_MISSING_SPAN"
+  ],
+  "note": "A next step nobody said. The fixture adds a fifth step, \"Then schedule a follow-up call\", with no span at all — which is what invention actually looks like when the author is honest enough not to fake an offset. Content without a span is unverifiable by definition, so the contract rejects it outright rather than letting it through as an unchecked string."
+}

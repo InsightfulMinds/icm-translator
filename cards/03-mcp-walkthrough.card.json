@@ -1,0 +1,721 @@
+{
+  "schema": "lesson-card.v1",
+  "profile": "lesson-card.v1",
+  "generated_utc": "2026-09-20T05:14:49Z",
+  "source": {
+    "file": "inputs/03-mcp-walkthrough.txt",
+    "sha256": "1c5eb847754b2d41a755e9c5711a9ebbb57c9939a971b9d41d3ffdd89cc797e1",
+    "bytes": 7573,
+    "duration_seconds": 425
+  },
+  "title": "not in source",
+  "speakers": "not in source",
+  "claims": [
+    {
+      "text": "I finally have the MCP hooked up to our main software.",
+      "span": {
+        "start": 0,
+        "end": 54
+      }
+    },
+    {
+      "text": "I'll obviously show people how to install that in this video, but I'm also going to describe why it's important and how it helps me.",
+      "span": {
+        "start": 55,
+        "end": 187
+      }
+    },
+    {
+      "text": "Now, for those of you who've been following and see my other videos, you know that we have published a software that allows you to push these kind of second brains, these ICMs that I talk about, these folder structures into a single place.",
+      "span": {
+        "start": 188,
+        "end": 427
+      }
+    },
+    {
+      "text": "So, I have a folder structure that's keeping track of our program, our cohorts, our curriculums that we're doing, and anyone can come in and ask questions about it.",
+      "span": {
+        "start": 428,
+        "end": 592
+      }
+    },
+    {
+      "text": "Can use AI in the way as if it was locally on their computer.",
+      "span": {
+        "start": 593,
+        "end": 654
+      }
+    },
+    {
+      "text": "And obviously, we have some organizations or some areas that have hundreds of users inside of them, which is very interesting, uh being able to see all the things that they've built.",
+      "span": {
+        "start": 655,
+        "end": 837
+      }
+    },
+    {
+      "text": "One of my favorite is Devin essentially posted this uh Rivapong.",
+      "span": {
+        "start": 838,
+        "end": 902
+      }
+    },
+    {
+      "text": "He used uh my last name to kind of build out it, but inside the folder structure, he was able to deploy an actual game of Pong for everyone, and it keeps track of all the people playing and things like that uh in a pretty scalable play.",
+      "span": {
+        "start": 903,
+        "end": 1139
+      }
+    },
+    {
+      "text": "Obviously, uh I am absolutely terrible at Pong, apparently.",
+      "span": {
+        "start": 1140,
+        "end": 1199
+      }
+    },
+    {
+      "text": "But one thing that is interesting in the way our people have been using it is being able to edit and control these ICMs, these folder packets that essentially solve a lot of problems that agentic environments, you know, create complications out of.",
+      "span": {
+        "start": 1200,
+        "end": 1448
+      }
+    },
+    {
+      "text": "And so, that allows me to connect Claude or any AI to a huge wealth of information, knowledge, other people's second brains.",
+      "span": {
+        "start": 1665,
+        "end": 1789
+      }
+    },
+    {
+      "text": "I can connect hundreds of second brains and things together all through simple templates and folder structure, while still keeping all the security that I really want.",
+      "span": {
+        "start": 1790,
+        "end": 1957
+      }
+    },
+    {
+      "text": "Uh as you can see here, when I asked what templates I have available, all of these are folder structures with skills, code, information, things about those companies.",
+      "span": {
+        "start": 1958,
+        "end": 2124
+      }
+    },
+    {
+      "text": "And it'll even update as I go through and immediately send it through.",
+      "span": {
+        "start": 2125,
+        "end": 2195
+      }
+    },
+    {
+      "text": "So, if I want to edit or access information about any of my folder structures, all I have to do is take a zip, upload it into here, and boom.",
+      "span": {
+        "start": 2196,
+        "end": 2337
+      }
+    },
+    {
+      "text": "I now have a usable template, a proper area that I can connect between anyone's AI and anyone's area.",
+      "span": {
+        "start": 2338,
+        "end": 2439
+      }
+    },
+    {
+      "text": "And other people, even with completely different AIs, can come in and chat and work inside of the same context, the same area.",
+      "span": {
+        "start": 2440,
+        "end": 2566
+      }
+    },
+    {
+      "text": "That means all of the markdown files, the structures, everything can be shared context across multiple companies, places, areas, while still allowing for a huge level of security.",
+      "span": {
+        "start": 2567,
+        "end": 2746
+      }
+    },
+    {
+      "text": "Now, I'll be making more videos on how people are using this.",
+      "span": {
+        "start": 2747,
+        "end": 2808
+      }
+    },
+    {
+      "text": "This gave them a larger area.",
+      "span": {
+        "start": 2999,
+        "end": 3028
+      }
+    },
+    {
+      "text": "For me, I use it as a place to organize a lot of data and thoughts and these second brains that all of my people can use without them needing to use a separate AI tool or anything like that.",
+      "span": {
+        "start": 3029,
+        "end": 3219
+      }
+    },
+    {
+      "text": "But, let's say you wanted to actually hook up the MCP.",
+      "span": {
+        "start": 3220,
+        "end": 3274
+      }
+    },
+    {
+      "text": "That's what this whole video is about.",
+      "span": {
+        "start": 3275,
+        "end": 3313
+      }
+    },
+    {
+      "text": "Now, I am about to send the details into our Discord as well as part of the docs and some screenshots instead of just this video.",
+      "span": {
+        "start": 3314,
+        "end": 3443
+      }
+    },
+    {
+      "text": "But, essentially, you're going to need a client ID, and then you're going to need this link.",
+      "span": {
+        "start": 3444,
+        "end": 3536
+      }
+    },
+    {
+      "text": "And I'll show you how to input them right now.",
+      "span": {
+        "start": 3537,
+        "end": 3583
+      }
+    },
+    {
+      "text": "Now, any AI that you're using, you should have some sort of ability to customize it.",
+      "span": {
+        "start": 3584,
+        "end": 3668
+      }
+    },
+    {
+      "text": "Inside of Claude, inside of ChatGPT, Hermes, you should have the ability to add an MCP connection or a connector.",
+      "span": {
+        "start": 3669,
+        "end": 3782
+      }
+    },
+    {
+      "text": "So, in Claude, you go to customize, you go to connectors, on the right, you hit add, and you can add a name.",
+      "span": {
+        "start": 3783,
+        "end": 3891
+      }
+    },
+    {
+      "text": "You can actually call it whatever you would like.",
+      "span": {
+        "start": 3892,
+        "end": 3941
+      }
+    },
+    {
+      "text": "This is the ID that references what our actual host for the MCP is, so you can connect to it.",
+      "span": {
+        "start": 4147,
+        "end": 4240
+      }
+    },
+    {
+      "text": "Now, once you put both of these in, you're going to need to replace this with your actual organization ID.",
+      "span": {
+        "start": 4241,
+        "end": 4347
+      }
+    },
+    {
+      "text": "In the future, we're going to have dynamic registration and things like that, but right now in alpha, it's very manual.",
+      "span": {
+        "start": 4348,
+        "end": 4467
+      }
+    },
+    {
+      "text": "When you're logged into Aduba, you're going to come over to configure org.",
+      "span": {
+        "start": 4468,
+        "end": 4542
+      }
+    },
+    {
+      "text": "When you hit configure org, you'll have your various organizations.",
+      "span": {
+        "start": 4543,
+        "end": 4610
+      }
+    },
+    {
+      "text": "Maybe you only have one, maybe you have multiple.",
+      "span": {
+        "start": 4611,
+        "end": 4660
+      }
+    },
+    {
+      "text": "But if you look right here in the URL, each of these is the organization ID.",
+      "span": {
+        "start": 4661,
+        "end": 4737
+      }
+    },
+    {
+      "text": "And you can see as I switch, that number changes.",
+      "span": {
+        "start": 4738,
+        "end": 4787
+      }
+    },
+    {
+      "text": "We only have it set up so that each MCP server is separated to each org.",
+      "span": {
+        "start": 4788,
+        "end": 4860
+      }
+    },
+    {
+      "text": "The reason for this is it allows security and the lack of too much context getting into one areas.",
+      "span": {
+        "start": 4861,
+        "end": 4959
+      }
+    },
+    {
+      "text": "We might change that over time, but for right now in alpha, with alpha testing, it's very simple.",
+      "span": {
+        "start": 4960,
+        "end": 5057
+      }
+    },
+    {
+      "text": "You will just come up, you will click on the org that you want.",
+      "span": {
+        "start": 5058,
+        "end": 5121
+      }
+    },
+    {
+      "text": "You will copy and paste this ID.",
+      "span": {
+        "start": 5122,
+        "end": 5154
+      }
+    },
+    {
+      "text": "So, you'll have the entire URL, and wherever this backslash is, you'll see a number.",
+      "span": {
+        "start": 5155,
+        "end": 5239
+      }
+    },
+    {
+      "text": "You copy all the way to the next backslash.",
+      "span": {
+        "start": 5240,
+        "end": 5283
+      }
+    },
+    {
+      "text": "When you hit add, essentially it will go and it will prompt you to log into your Aduba.",
+      "span": {
+        "start": 5422,
+        "end": 5509
+      }
+    },
+    {
+      "text": "Where when you hit connect, it'll bring you to our website.",
+      "span": {
+        "start": 5510,
+        "end": 5569
+      }
+    },
+    {
+      "text": "Now, once you are connected, you can actually sit there and ask and read through those.",
+      "span": {
+        "start": 5655,
+        "end": 5742
+      }
+    },
+    {
+      "text": "You can edit them, you can move them.",
+      "span": {
+        "start": 5743,
+        "end": 5780
+      }
+    },
+    {
+      "text": "But if you add this MCP specifically to some sort of agent or AI that's local to your desktop, you can actually work on this folder structure locally, whether it's with Claude or anything else that you have, maybe even your own local AI.",
+      "span": {
+        "start": 5781,
+        "end": 6018
+      }
+    },
+    {
+      "text": "Once that's pushed, then anyone else in your org can actually access it, right?",
+      "span": {
+        "start": 6297,
+        "end": 6376
+      }
+    },
+    {
+      "text": "If we come into one of these templates, we actually had a chat and we had one of my members and moderators from my community actually going through the same folder structure with all the markdowns, all the processes, and adding to it, creating this great unique hub where we can all come together.",
+      "span": {
+        "start": 6377,
+        "end": 6674
+      }
+    },
+    {
+      "text": "And if for some reason I want to export it and have my own copy, I have a simple export button right here that immediately zips everything.",
+      "span": {
+        "start": 6675,
+        "end": 6814
+      }
+    },
+    {
+      "text": "And that is the most up-to-date version.",
+      "span": {
+        "start": 6815,
+        "end": 6855
+      }
+    },
+    {
+      "text": "So, even if there was five, 10, 15 people working on this folder structure inside of these chats, inside of this environment, I'm getting all of their changes and their work as well.",
+      "span": {
+        "start": 6856,
+        "end": 7038
+      }
+    },
+    {
+      "text": "And simultaneously, I can push and move them from here as well to see if anyone else has uploaded them.",
+      "span": {
+        "start": 7039,
+        "end": 7142
+      }
+    },
+    {
+      "text": "Just a quick video today to show how to access our MCP server.",
+      "span": {
+        "start": 7143,
+        "end": 7205
+      }
+    },
+    {
+      "text": "Uh many more videos are going to be coming.",
+      "span": {
+        "start": 7206,
+        "end": 7249
+      }
+    },
+    {
+      "text": "Comment below if you want me to show more use cases or if you're just trying to get into the community and get into understanding how this helps in the AI world, uh go ahead and check out the links in the bio.",
+      "span": {
+        "start": 7250,
+        "end": 7459
+      }
+    },
+    {
+      "text": "And hopefully we'll get more and more people into the alpha as time goes on.",
+      "span": {
+        "start": 7460,
+        "end": 7536
+      }
+    }
+  ],
+  "definitions": "not in source",
+  "numbers": [
+    {
+      "value": {
+        "text": "10",
+        "span": {
+          "start": 6884,
+          "end": 6886
+        }
+      },
+      "unit": "not in source"
+    },
+    {
+      "value": {
+        "text": "15",
+        "span": {
+          "start": 6888,
+          "end": 6890
+        }
+      },
+      "unit": {
+        "text": "people",
+        "span": {
+          "start": 6891,
+          "end": 6897
+        }
+      }
+    }
+  ],
+  "entities": [
+    {
+      "name": {
+        "text": "MCP",
+        "span": {
+          "start": 19,
+          "end": 22
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "ICMs",
+        "span": {
+          "start": 359,
+          "end": 363
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "AI",
+        "span": {
+          "start": 601,
+          "end": 603
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Devin",
+        "span": {
+          "start": 860,
+          "end": 865
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Rivapong",
+        "span": {
+          "start": 893,
+          "end": 901
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Pong",
+        "span": {
+          "start": 1025,
+          "end": 1029
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Claude",
+        "span": {
+          "start": 1533,
+          "end": 1539
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "OpenAI",
+        "span": {
+          "start": 1557,
+          "end": 1563
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Hermes",
+        "span": {
+          "start": 1573,
+          "end": 1579
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "AIs",
+        "span": {
+          "start": 2489,
+          "end": 2492
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Discord",
+        "span": {
+          "start": 3359,
+          "end": 3366
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "ID",
+        "span": {
+          "start": 3492,
+          "end": 3494
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "ChatGPT",
+        "span": {
+          "start": 3697,
+          "end": 3704
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "URL",
+        "span": {
+          "start": 4029,
+          "end": 4032
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Aduba",
+        "span": {
+          "start": 4492,
+          "end": 4497
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    }
+  ],
+  "steps": [
+    {
+      "index": 1,
+      "action": {
+        "text": "Uh but, the most important part is that you're going to want to take the actual server URL, which you do need to replace this, and I'll show you how in a moment, and then you need to put in our client ID.",
+        "span": {
+          "start": 3942,
+          "end": 4146
+        }
+      }
+    },
+    {
+      "index": 2,
+      "action": {
+        "text": "Then from there, you're simply going to replace this organization ID with this, whatever that is.",
+        "span": {
+          "start": 5324,
+          "end": 5421
+        }
+      }
+    },
+    {
+      "index": 3,
+      "action": {
+        "text": "You'll go through the authorization process, and then it'll reconnect you back here.",
+        "span": {
+          "start": 5570,
+          "end": 5654
+        }
+      }
+    },
+    {
+      "index": 4,
+      "action": {
+        "text": "And then all you need to say is, \"Hey, push this to my org as a draft.\" It will automatically do the proper processes to take that and push it into your workspace as a new template that anyone who has access to your org can now access, edit, make copies of, and work inside of.",
+        "span": {
+          "start": 6019,
+          "end": 6296
+        }
+      }
+    }
+  ],
+  "unmapped": [
+    {
+      "text": "And essentially, they wanted to be able to work on it on their computer or on their Claude account or their OpenAI or their Hermes agent without having to log in, to be able to push these templates in these folders.",
+      "span": {
+        "start": 1449,
+        "end": 1664
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "The main ways I've seen is people creating separate organizations and essentially inviting people to it to then sell or share their actual templates, cuz they were already doing it by hand.",
+      "span": {
+        "start": 2809,
+        "end": 2998
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Forward slash.",
+      "span": {
+        "start": 5284,
+        "end": 5298
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Am I getting that wrong?",
+      "span": {
+        "start": 5299,
+        "end": 5323
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Either way, happy learning everyone.",
+      "span": {
+        "start": 7537,
+        "end": 7573
+      },
+      "reason": "below-extraction-threshold"
+    }
+  ],
+  "coverage": {
+    "total_bytes": 7573,
+    "covered_bytes": 7505,
+    "pct": 99.1,
+    "unmapped_threshold_bytes": 32
+  }
+}

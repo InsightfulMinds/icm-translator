@@ -1,0 +1,345 @@
+{
+  "schema": "lesson-card.v1",
+  "profile": "lesson-card.v1",
+  "generated_utc": "2026-09-20T05:14:49Z",
+  "source": {
+    "file": "inputs/04-pricing-objection.txt",
+    "sha256": "32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460",
+    "bytes": 1441,
+    "duration_seconds": "not in source"
+  },
+  "title": "not in source",
+  "speakers": [
+    {
+      "name": {
+        "text": "Dana",
+        "span": {
+          "start": 27,
+          "end": 31
+        }
+      },
+      "evidence": {
+        "text": "I'm Dana",
+        "span": {
+          "start": 23,
+          "end": 31
+        }
+      }
+    },
+    {
+      "name": {
+        "text": "Tomas",
+        "span": {
+          "start": 64,
+          "end": 69
+        }
+      },
+      "evidence": {
+        "text": "I'm Tomas",
+        "span": {
+          "start": 60,
+          "end": 69
+        }
+      }
+    }
+  ],
+  "claims": [
+    {
+      "text": "I'm Dana, I run onboarding here.",
+      "span": {
+        "start": 23,
+        "end": 55
+      }
+    },
+    {
+      "text": "And I'm Tomas, I'm on the finance side.",
+      "span": {
+        "start": 56,
+        "end": 95
+      }
+    },
+    {
+      "text": "So the reason I pulled this meeting is the pilot recap deck says we onboarded forty-two schools last quarter and I don't think that number is right.",
+      "span": {
+        "start": 96,
+        "end": 244
+      }
+    },
+    {
+      "text": "I built that slide off the provisioning export.",
+      "span": {
+        "start": 258,
+        "end": 305
+      }
+    },
+    {
+      "text": "Some of those forty-two were trial seats that never converted.",
+      "span": {
+        "start": 446,
+        "end": 508
+      }
+    },
+    {
+      "text": "Right, but the deck does not say trial anywhere, it says onboarded, and the board is going to read that as revenue.",
+      "span": {
+        "start": 526,
+        "end": 641
+      }
+    },
+    {
+      "text": "We quoted the district $5,000, sorry, $5,800 per site, and at forty-two sites that is a number nobody can support.",
+      "span": {
+        "start": 662,
+        "end": 776
+      }
+    },
+    {
+      "text": "No, I do not want to park it, because the renewal email goes out Thursday and it quotes the same figure.",
+      "span": {
+        "start": 827,
+        "end": 931
+      }
+    },
+    {
+      "text": "The invoice says $5,800 and the deck says $5,000, which is the whole reason I am raising this now.",
+      "span": {
+        "start": 1006,
+        "end": 1104
+      }
+    },
+    {
+      "text": "We are not correcting the deck two days before the board reads it, we are correcting the email.",
+      "span": {
+        "start": 1137,
+        "end": 1232
+      }
+    },
+    {
+      "text": "I still think forty-two is defensible if we footnote it as trials.",
+      "span": {
+        "start": 1256,
+        "end": 1322
+      }
+    },
+    {
+      "text": "I do not agree with that, and I want it on the record that I do not agree.",
+      "span": {
+        "start": 1323,
+        "end": 1397
+      }
+    }
+  ],
+  "definitions": "not in source",
+  "numbers": [
+    {
+      "value": {
+        "text": "$5,000,",
+        "span": {
+          "start": 685,
+          "end": 692
+        }
+      },
+      "unit": "not in source"
+    },
+    {
+      "value": {
+        "text": "$5,800",
+        "span": {
+          "start": 700,
+          "end": 706
+        }
+      },
+      "unit": "not in source"
+    },
+    {
+      "value": {
+        "text": "$5,800",
+        "span": {
+          "start": 1023,
+          "end": 1029
+        }
+      },
+      "unit": "not in source"
+    },
+    {
+      "value": {
+        "text": "$5,000,",
+        "span": {
+          "start": 1048,
+          "end": 1055
+        }
+      },
+      "unit": "not in source"
+    }
+  ],
+  "entities": [
+    {
+      "name": {
+        "text": "Thursday",
+        "span": {
+          "start": 892,
+          "end": 900
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "August",
+        "span": {
+          "start": 955,
+          "end": 961
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    }
+  ],
+  "steps": [
+    {
+      "index": 1,
+      "action": {
+        "text": "Then the provisioning export is wrong, because I closed twenty-nine contracts and you cannot onboard a school that has not signed anything.",
+        "span": {
+          "start": 306,
+          "end": 445
+        }
+      }
+    },
+    {
+      "index": 2,
+      "action": {
+        "text": "Let's go ahead and park the pricing for a second.",
+        "span": {
+          "start": 777,
+          "end": 826
+        }
+      }
+    },
+    {
+      "index": 3,
+      "action": {
+        "text": "Check the invoice from August, it has the real one on it.",
+        "span": {
+          "start": 932,
+          "end": 989
+        }
+      }
+    },
+    {
+      "index": 4,
+      "action": {
+        "text": "Then we correct the deck.",
+        "span": {
+          "start": 1111,
+          "end": 1136
+        }
+      }
+    }
+  ],
+  "unmapped": [
+    {
+      "text": "Okay, we're recording.",
+      "span": {
+        "start": 0,
+        "end": 22
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "It is right.",
+      "span": {
+        "start": 245,
+        "end": 257
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "That is the gap.",
+      "span": {
+        "start": 509,
+        "end": 525
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Okay, that is fair.",
+      "span": {
+        "start": 642,
+        "end": 661
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "I did check it.",
+      "span": {
+        "start": 990,
+        "end": 1005
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Fine.",
+      "span": {
+        "start": 1105,
+        "end": 1110
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Both.",
+      "span": {
+        "start": 1233,
+        "end": 1238
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "We correct both.",
+      "span": {
+        "start": 1239,
+        "end": 1255
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Noted.",
+      "span": {
+        "start": 1398,
+        "end": 1404
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Anything else?",
+      "span": {
+        "start": 1405,
+        "end": 1419
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "No.",
+      "span": {
+        "start": 1420,
+        "end": 1423
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Thanks everyone.",
+      "span": {
+        "start": 1424,
+        "end": 1440
+      },
+      "reason": "below-extraction-threshold"
+    }
+  ],
+  "coverage": {
+    "total_bytes": 1441,
+    "covered_bytes": 1413,
+    "pct": 98.06,
+    "unmapped_threshold_bytes": 32
+  }
+}

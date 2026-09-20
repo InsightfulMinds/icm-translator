@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-01-invented-date",
+  "invention_class": "invented-date",
+  "expect_codes": [
+    "SPAN_TEXT_MISMATCH"
+  ],
+  "note": "A date the input never mentioned. The fixture adds a claim asserting \"The call was on March 14\" and points it at a real, in-range span so the card LOOKS cited. The verifier re-reads those bytes, finds \"this is the onboarding w\", and dies. There is no date anywhere in the fixture transcript, so no span could ever have supported this claim."
+}

@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-04-number-drift",
+  "invention_class": "number-drift",
+  "expect_codes": [
+    "SPAN_TEXT_MISMATCH"
+  ],
+  "note": "A number that drifts a digit. \"$5,000\" becomes \"$5,800\" with the span left alone. One character, and it is the character a reader is most likely to act on. Nothing about the card looks wrong until the bytes are re-read."
+}

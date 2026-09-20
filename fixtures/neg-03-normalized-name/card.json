@@ -1,0 +1,192 @@
+{
+  "schema": "lesson-card.v1",
+  "profile": "lesson-card.v1",
+  "generated_utc": "2026-09-19T13:41:51Z",
+  "source": {
+    "file": "fixtures/fixture-transcript.txt",
+    "sha256": "10bb0b7b109d725e6b049999f9127d03e7dfca8dd05e603b13546e2b22fb936d",
+    "bytes": 386,
+    "duration_seconds": "not in source"
+  },
+  "title": "not in source",
+  "speakers": [
+    {
+      "name": {
+        "text": "Sarah",
+        "span": {
+          "start": 18,
+          "end": 22
+        }
+      },
+      "evidence": {
+        "text": "my name is Sara",
+        "span": {
+          "start": 7,
+          "end": 22
+        }
+      }
+    }
+  ],
+  "claims": [
+    {
+      "text": "this is the onboarding walkthrough",
+      "span": {
+        "start": 27,
+        "end": 61
+      }
+    },
+    {
+      "text": "Dexter is a platform that gives you an AI agent",
+      "span": {
+        "start": 63,
+        "end": 110
+      }
+    },
+    {
+      "text": "It costs $5,000 a month for the top tier",
+      "span": {
+        "start": 259,
+        "end": 299
+      }
+    },
+    {
+      "text": "One member raised an objection about the price during the call.",
+      "span": {
+        "start": 301,
+        "end": 364
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "term": {
+        "text": "Dexter",
+        "span": {
+          "start": 63,
+          "end": 69
+        }
+      },
+      "definition": {
+        "text": "a platform that gives you an AI agent",
+        "span": {
+          "start": 73,
+          "end": 110
+        }
+      }
+    }
+  ],
+  "numbers": [
+    {
+      "value": {
+        "text": "$5,000",
+        "span": {
+          "start": 268,
+          "end": 274
+        }
+      },
+      "unit": {
+        "text": "a month",
+        "span": {
+          "start": 275,
+          "end": 282
+        }
+      }
+    }
+  ],
+  "entities": [
+    {
+      "name": {
+        "text": "Dexter",
+        "span": {
+          "start": 63,
+          "end": 69
+        }
+      },
+      "kind": "tool",
+      "role": {
+        "text": "a platform",
+        "span": {
+          "start": 73,
+          "end": 83
+        }
+      }
+    },
+    {
+      "name": {
+        "text": "Sara",
+        "span": {
+          "start": 18,
+          "end": 22
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    }
+  ],
+  "steps": [
+    {
+      "index": 1,
+      "action": {
+        "text": "The first thing is to click the link below",
+        "span": {
+          "start": 112,
+          "end": 154
+        }
+      }
+    },
+    {
+      "index": 2,
+      "action": {
+        "text": "click continue",
+        "span": {
+          "start": 162,
+          "end": 176
+        }
+      }
+    },
+    {
+      "index": 3,
+      "action": {
+        "text": "enter your email address",
+        "span": {
+          "start": 183,
+          "end": 207
+        }
+      }
+    },
+    {
+      "index": 4,
+      "action": {
+        "text": "click continue again to finish",
+        "span": {
+          "start": 227,
+          "end": 257
+        }
+      }
+    }
+  ],
+  "unmapped": [
+    {
+      "text": "Hello,",
+      "span": {
+        "start": 0,
+        "end": 6
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Thanks for watching.",
+      "span": {
+        "start": 365,
+        "end": 385
+      },
+      "reason": "no-field-for-this-content"
+    }
+  ],
+  "coverage": {
+    "total_bytes": 386,
+    "covered_bytes": 335,
+    "pct": 86.79,
+    "unmapped_threshold_bytes": 32
+  }
+}

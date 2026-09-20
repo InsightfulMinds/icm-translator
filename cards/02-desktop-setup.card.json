@@ -1,0 +1,840 @@
+{
+  "schema": "lesson-card.v1",
+  "profile": "lesson-card.v1",
+  "generated_utc": "2026-09-20T05:14:49Z",
+  "source": {
+    "file": "inputs/02-desktop-setup.txt",
+    "sha256": "f75026476f201a7ff3c161a72875cc0538c440728c9133efa0727711c9ac2e7c",
+    "bytes": 6713,
+    "duration_seconds": 391.6
+  },
+  "title": "not in source",
+  "speakers": [
+    {
+      "name": {
+        "text": "Marco Salas",
+        "span": {
+          "start": 27,
+          "end": 38
+        }
+      },
+      "evidence": {
+        "text": "my name is Marco Salas",
+        "span": {
+          "start": 16,
+          "end": 38
+        }
+      }
+    }
+  ],
+  "claims": [
+    {
+      "text": "The AI agent is also going to be your accountability coach that is going to be there whenever you're falling off, you're not completing the steps or are confused on the things that you need to do next.",
+      "span": {
+        "start": 389,
+        "end": 590
+      }
+    },
+    {
+      "text": "And in this video, I want to show you how to set it up, plus how to get access to the AI agent once you have been on board.",
+      "span": {
+        "start": 591,
+        "end": 714
+      }
+    },
+    {
+      "text": "Now, the next thing is to find this link.",
+      "span": {
+        "start": 715,
+        "end": 756
+      }
+    },
+    {
+      "text": "You will probably find it somewhere in the community.",
+      "span": {
+        "start": 757,
+        "end": 810
+      }
+    },
+    {
+      "text": "You can use a regular email for this.",
+      "span": {
+        "start": 841,
+        "end": 878
+      }
+    },
+    {
+      "text": "You would get a code inside of your email.",
+      "span": {
+        "start": 879,
+        "end": 921
+      }
+    },
+    {
+      "text": "But for quick access, we're going to continue with Google.",
+      "span": {
+        "start": 987,
+        "end": 1045
+      }
+    },
+    {
+      "text": "We're going to create an account.",
+      "span": {
+        "start": 1046,
+        "end": 1079
+      }
+    },
+    {
+      "text": "We're going to click continue and it's going to ask us a couple of questions.",
+      "span": {
+        "start": 1080,
+        "end": 1157
+      }
+    },
+    {
+      "text": "All these questions are there to help the agent understand a little bit more about your journey, where you're currently at and what are your goals.",
+      "span": {
+        "start": 1158,
+        "end": 1305
+      }
+    },
+    {
+      "text": "So it can help you and pinpoint you to the right resources and videos that are inside of the classroom.",
+      "span": {
+        "start": 1306,
+        "end": 1409
+      }
+    },
+    {
+      "text": "This is an example, but let's click submit.",
+      "span": {
+        "start": 1410,
+        "end": 1453
+      }
+    },
+    {
+      "text": "And now it's going to create a profile of you and it's going to tell the AI agent that is now inside of the community who you are, what's your goal and what you would like to do inside of this classroom.",
+      "span": {
+        "start": 1454,
+        "end": 1657
+      }
+    },
+    {
+      "text": "Now, it's going to ask you if you are in a computer or a phone.",
+      "span": {
+        "start": 1658,
+        "end": 1721
+      }
+    },
+    {
+      "text": "In this video, I'm going to show you how to set it up in the computer.",
+      "span": {
+        "start": 1722,
+        "end": 1792
+      }
+    },
+    {
+      "text": "But there's going to be another video on how to set it up inside of your phone as well.",
+      "span": {
+        "start": 1793,
+        "end": 1880
+      }
+    },
+    {
+      "text": "It's going to ask us to download the extension and click add to Chrome, add extension.",
+      "span": {
+        "start": 1921,
+        "end": 2007
+      }
+    },
+    {
+      "text": "It's going to ask us to pin it so we can go ahead, pin it in here.",
+      "span": {
+        "start": 2008,
+        "end": 2074
+      }
+    },
+    {
+      "text": "Now, mind you, I highly recommend you to create the account with the same email you use for your school community.",
+      "span": {
+        "start": 2128,
+        "end": 2242
+      }
+    },
+    {
+      "text": "That way you're not managing multiple accounts.",
+      "span": {
+        "start": 2243,
+        "end": 2290
+      }
+    },
+    {
+      "text": "And in case you forget, you always know that it's the same one as your school account.",
+      "span": {
+        "start": 2291,
+        "end": 2377
+      }
+    },
+    {
+      "text": "We're going to continue with Google once again.",
+      "span": {
+        "start": 2378,
+        "end": 2425
+      }
+    },
+    {
+      "text": "And now you're going to see access to all the communities you belong.",
+      "span": {
+        "start": 2426,
+        "end": 2495
+      }
+    },
+    {
+      "text": "In this case, it will be Cliff Notes.",
+      "span": {
+        "start": 2496,
+        "end": 2533
+      }
+    },
+    {
+      "text": "But if you belong to any other communities on Dexter, you will also be able to see it and find it right there.",
+      "span": {
+        "start": 2534,
+        "end": 2644
+      }
+    },
+    {
+      "text": "And now you will see a widget to the side of the screen.",
+      "span": {
+        "start": 2645,
+        "end": 2701
+      }
+    },
+    {
+      "text": "You can open it and you can get access to the roadmap as well as the chatbot plus your profile details.",
+      "span": {
+        "start": 2702,
+        "end": 2805
+      }
+    },
+    {
+      "text": "Now, in the profile details, you can modify essentially the role, the experience or your goal if at some point it changes.",
+      "span": {
+        "start": 2806,
+        "end": 2928
+      }
+    },
+    {
+      "text": "So the AI agent is up to date with the latest version of your journey.",
+      "span": {
+        "start": 2929,
+        "end": 2999
+      }
+    },
+    {
+      "text": "What are the first things that I need to do in order to find success inside of this community?",
+      "span": {
+        "start": 3061,
+        "end": 3155
+      }
+    },
+    {
+      "text": "Right now, it's start with two things.",
+      "span": {
+        "start": 3156,
+        "end": 3194
+      }
+    },
+    {
+      "text": "Get your hands on the tool.",
+      "span": {
+        "start": 3221,
+        "end": 3248
+      }
+    },
+    {
+      "text": "So once I finish, I want to show you where it's taking me.",
+      "span": {
+        "start": 3249,
+        "end": 3307
+      }
+    },
+    {
+      "text": "Now, the first thing is, is telling me to go to navigating the course.",
+      "span": {
+        "start": 3308,
+        "end": 3378
+      }
+    },
+    {
+      "text": "Now, this is because I need to understand how this community works.",
+      "span": {
+        "start": 3379,
+        "end": 3446
+      }
+    },
+    {
+      "text": "And essentially, it's going to guide me through that process.",
+      "span": {
+        "start": 3447,
+        "end": 3508
+      }
+    },
+    {
+      "text": "But the more questions I have, the more I talk to it, the more it's going to understand about us.",
+      "span": {
+        "start": 3509,
+        "end": 3606
+      }
+    },
+    {
+      "text": "And it's going to redirect us to the right place.",
+      "span": {
+        "start": 3607,
+        "end": 3656
+      }
+    },
+    {
+      "text": "And the second step is to get my hands on the tool so I can go ahead and click on this lesson.",
+      "span": {
+        "start": 3657,
+        "end": 3751
+      }
+    },
+    {
+      "text": "And as you can see, it's guiding me through this process.",
+      "span": {
+        "start": 3752,
+        "end": 3809
+      }
+    },
+    {
+      "text": "I can also open the tool.",
+      "span": {
+        "start": 3810,
+        "end": 3835
+      }
+    },
+    {
+      "text": "And if at some point I have a question about the specific lesson, I can say, how does this lesson actually apply to me?",
+      "span": {
+        "start": 3836,
+        "end": 3955
+      }
+    },
+    {
+      "text": "And it's going to take a look at our profile details plus what's inside of the lesson.",
+      "span": {
+        "start": 3956,
+        "end": 4042
+      }
+    },
+    {
+      "text": "And it's going to give us a personalized walkthrough based on what we currently need.",
+      "span": {
+        "start": 4043,
+        "end": 4128
+      }
+    },
+    {
+      "text": "So how it applies to you specifically, you want to build a school dashboard using Dexter MCP to automate posts, scripts, DMs, and pipelines.",
+      "span": {
+        "start": 4136,
+        "end": 4276
+      }
+    },
+    {
+      "text": "To do that, we need Claude, the Claude desktop, cursor, and essentially, you know, all the stuff that I also need.",
+      "span": {
+        "start": 4277,
+        "end": 4391
+      }
+    },
+    {
+      "text": "And of course, I can keep on reading this and perhaps ask further questions ahead.",
+      "span": {
+        "start": 4415,
+        "end": 4497
+      }
+    },
+    {
+      "text": "Now, there is also the roadmap, which is awesome for you to get started and know exactly what are the lessons that you need to watch or what are the stuff that you need to do in order to keep yourself accountable.",
+      "span": {
+        "start": 4498,
+        "end": 4711
+      }
+    },
+    {
+      "text": "Also, share the journey with the members and test your knowledge through the quizzes.",
+      "span": {
+        "start": 4712,
+        "end": 4797
+      }
+    },
+    {
+      "text": "So as you can see, there is a step, but we also have access to more roadmaps in here.",
+      "span": {
+        "start": 4798,
+        "end": 4883
+      }
+    },
+    {
+      "text": "So if you're still in that beginning phase with the foundations, I highly recommend you to take a look at this roadmap.",
+      "span": {
+        "start": 4884,
+        "end": 5003
+      }
+    },
+    {
+      "text": "And there are other roadmaps down below that you can also get started.",
+      "span": {
+        "start": 5004,
+        "end": 5074
+      }
+    },
+    {
+      "text": "It's going to redirect us to this specific lesson.",
+      "span": {
+        "start": 5164,
+        "end": 5214
+      }
+    },
+    {
+      "text": "And the first task is to create a post after watching this video where we're going to reflect on where is our AI journey right now.",
+      "span": {
+        "start": 5215,
+        "end": 5346
+      }
+    },
+    {
+      "text": "Now, all of these instructions and the post template might change, but I just want to show you how will this actually work at play.",
+      "span": {
+        "start": 5347,
+        "end": 5478
+      }
+    },
+    {
+      "text": "I'm going to create a post.",
+      "span": {
+        "start": 5479,
+        "end": 5506
+      }
+    },
+    {
+      "text": "We're going to copy this title, put it in here, delete this part, put our name, Marco.",
+      "span": {
+        "start": 5507,
+        "end": 5593
+      }
+    },
+    {
+      "text": "And I can also go ahead, further customize this post.",
+      "span": {
+        "start": 5594,
+        "end": 5647
+      }
+    },
+    {
+      "text": "I can post it in general and I can create post.",
+      "span": {
+        "start": 5648,
+        "end": 5695
+      }
+    },
+    {
+      "text": "And now I can move to the next task, which is a small quiz.",
+      "span": {
+        "start": 5749,
+        "end": 5808
+      }
+    },
+    {
+      "text": "Now, all of these questions are going to be based on what has been covered inside of the video.",
+      "span": {
+        "start": 5809,
+        "end": 5904
+      }
+    },
+    {
+      "text": "So let me just give it a quick try.",
+      "span": {
+        "start": 5998,
+        "end": 6033
+      }
+    },
+    {
+      "text": "Now we're going to submit the quiz and it's going to evaluate our answers.",
+      "span": {
+        "start": 6034,
+        "end": 6108
+      }
+    },
+    {
+      "text": "You can see I got all of them right, which is surprisingly, I watched half through the video.",
+      "span": {
+        "start": 6109,
+        "end": 6202
+      }
+    },
+    {
+      "text": "That is it for right now.",
+      "span": {
+        "start": 6408,
+        "end": 6433
+      }
+    },
+    {
+      "text": "Right underneath this lesson, there's going to be a post where you can ask us any questions.",
+      "span": {
+        "start": 6434,
+        "end": 6526
+      }
+    },
+    {
+      "text": "If there is any issues, any bugs, feel free to let us know.",
+      "span": {
+        "start": 6527,
+        "end": 6586
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "term": {
+        "text": "Dexter",
+        "span": {
+          "start": 65,
+          "end": 71
+        }
+      },
+      "definition": {
+        "text": "a platform that aims to help you find success inside of this community through an AI agent that is trained with everything that lives inside of the classroom",
+        "span": {
+          "start": 82,
+          "end": 239
+        }
+      }
+    }
+  ],
+  "numbers": "not in source",
+  "entities": [
+    {
+      "name": {
+        "text": "Marco Salas",
+        "span": {
+          "start": 27,
+          "end": 38
+        }
+      },
+      "kind": "person",
+      "role": {
+        "text": "my name is Marco Salas",
+        "span": {
+          "start": 16,
+          "end": 38
+        }
+      }
+    },
+    {
+      "name": {
+        "text": "Dexter",
+        "span": {
+          "start": 65,
+          "end": 71
+        }
+      },
+      "kind": "tool",
+      "role": {
+        "text": "a platform that aims to help you find success inside of this community through an AI agent that is trained with everything that lives inside of the classroom",
+        "span": {
+          "start": 82,
+          "end": 239
+        }
+      }
+    },
+    {
+      "name": {
+        "text": "AI",
+        "span": {
+          "start": 164,
+          "end": 166
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Google",
+        "span": {
+          "start": 1038,
+          "end": 1044
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Chrome",
+        "span": {
+          "start": 1985,
+          "end": 1991
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Cliff Notes",
+        "span": {
+          "start": 2521,
+          "end": 2532
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Dexter MCP",
+        "span": {
+          "start": 4218,
+          "end": 4228
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "DMs",
+        "span": {
+          "start": 4257,
+          "end": 4260
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Claude",
+        "span": {
+          "start": 4297,
+          "end": 4303
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "Marco",
+        "span": {
+          "start": 5587,
+          "end": 5592
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    }
+  ],
+  "steps": [
+    {
+      "index": 1,
+      "action": {
+        "text": "Now, let's create an account.",
+        "span": {
+          "start": 811,
+          "end": 840
+        }
+      }
+    },
+    {
+      "index": 2,
+      "action": {
+        "text": "Check your spam, put it in here and you will be able to proceed.",
+        "span": {
+          "start": 922,
+          "end": 986
+        }
+      }
+    },
+    {
+      "index": 3,
+      "action": {
+        "text": "Now, let's go ahead and click computer.",
+        "span": {
+          "start": 1881,
+          "end": 1920
+        }
+      }
+    },
+    {
+      "index": 4,
+      "action": {
+        "text": "Now, let's go ahead and ask the chatbot a specific question.",
+        "span": {
+          "start": 3000,
+          "end": 3060
+        }
+      }
+    },
+    {
+      "index": 5,
+      "action": {
+        "text": "For example, let's go ahead and jump with the foundation.",
+        "span": {
+          "start": 5075,
+          "end": 5132
+        }
+      }
+    },
+    {
+      "index": 6,
+      "action": {
+        "text": "And just like that, the task has now been completed.",
+        "span": {
+          "start": 5696,
+          "end": 5748
+        }
+      }
+    },
+    {
+      "index": 7,
+      "action": {
+        "text": "So you can go ahead, take a look at the video first and then proceed to answer the question.",
+        "span": {
+          "start": 5905,
+          "end": 5997
+        }
+      }
+    },
+    {
+      "index": 8,
+      "action": {
+        "text": "But then you can go ahead, read the feedback that is giving you if you got them wrong and proceed to click done.",
+        "span": {
+          "start": 6203,
+          "end": 6315
+        }
+      }
+    },
+    {
+      "index": 9,
+      "action": {
+        "text": "After that, you can click continue and then you're going to be redirected to the next task.",
+        "span": {
+          "start": 6316,
+          "end": 6407
+        }
+      }
+    }
+  ],
+  "unmapped": [
+    {
+      "text": "Hello everyone, my name is Marco Salas and I'm the co-founder of Dexter, which is a platform that aims to help you find success inside of this community through an AI agent that is trained with everything that lives inside of the classroom, plus a roadmap that is going to guide you step by step on the things that you need to do in order for you to find success inside of this community.",
+      "span": {
+        "start": 0,
+        "end": 388
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Oops, that's the other one.",
+      "span": {
+        "start": 2075,
+        "end": 2102
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "And we're going to open.",
+      "span": {
+        "start": 2103,
+        "end": 2127
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Understand the structure.",
+      "span": {
+        "start": 3195,
+        "end": 3220
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Right.",
+      "span": {
+        "start": 4129,
+        "end": 4135
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Your folder structure.",
+      "span": {
+        "start": 4392,
+        "end": 4414
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "We're going to click continue.",
+      "span": {
+        "start": 5133,
+        "end": 5163
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "I want to see you crushing it.",
+      "span": {
+        "start": 6587,
+        "end": 6617
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "I want to see you succeed.",
+      "span": {
+        "start": 6618,
+        "end": 6644
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "And I want to see you in the community as well.",
+      "span": {
+        "start": 6645,
+        "end": 6692
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "See you soon.",
+      "span": {
+        "start": 6693,
+        "end": 6706
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Ciao.",
+      "span": {
+        "start": 6707,
+        "end": 6712
+      },
+      "reason": "no-field-for-this-content"
+    }
+  ],
+  "coverage": {
+    "total_bytes": 6713,
+    "covered_bytes": 6625,
+    "pct": 98.69,
+    "unmapped_threshold_bytes": 32
+  }
+}

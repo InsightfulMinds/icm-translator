@@ -1,0 +1,4 @@
+df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8  inputs/01-mobile-app-setup.txt
+f75026476f201a7ff3c161a72875cc0538c440728c9133efa0727711c9ac2e7c  inputs/02-desktop-setup.txt
+1c5eb847754b2d41a755e9c5711a9ebbb57c9939a971b9d41d3ffdd89cc797e1  inputs/03-mcp-walkthrough.txt
+32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460  inputs/04-pricing-objection.txt

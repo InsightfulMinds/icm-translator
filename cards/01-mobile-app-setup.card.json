@@ -1,0 +1,516 @@
+{
+  "schema": "lesson-card.v1",
+  "profile": "lesson-card.v1",
+  "generated_utc": "2026-09-20T05:14:49Z",
+  "source": {
+    "file": "inputs/01-mobile-app-setup.txt",
+    "sha256": "df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8",
+    "bytes": 2657,
+    "duration_seconds": 161
+  },
+  "title": "not in source",
+  "speakers": "not in source",
+  "claims": [
+    {
+      "text": "How do you set this up inside of your mobile device?",
+      "span": {
+        "start": 0,
+        "end": 52
+      }
+    },
+    {
+      "text": "It's going to take you to a page that looks just like this.",
+      "span": {
+        "start": 121,
+        "end": 180
+      }
+    },
+    {
+      "text": "All you have to do is just copy and paste it.",
+      "span": {
+        "start": 274,
+        "end": 319
+      }
+    },
+    {
+      "text": "We suggest you use the same school email account so you're not jiggling through multiple accounts.",
+      "span": {
+        "start": 370,
+        "end": 468
+      }
+    },
+    {
+      "text": "That we can continue with Google.",
+      "span": {
+        "start": 469,
+        "end": 502
+      }
+    },
+    {
+      "text": "If you don't know where that is, you can simply click this button right here.",
+      "span": {
+        "start": 583,
+        "end": 660
+      }
+    },
+    {
+      "text": "We can zoom into the page.",
+      "span": {
+        "start": 661,
+        "end": 687
+      }
+    },
+    {
+      "text": "And as you can see, it will be right underneath your profile name.",
+      "span": {
+        "start": 688,
+        "end": 754
+      }
+    },
+    {
+      "text": "And after that, it's going to ask us a couple questions.",
+      "span": {
+        "start": 755,
+        "end": 811
+      }
+    },
+    {
+      "text": "And this is going to help our AI recommend the right strategies for your current stage.",
+      "span": {
+        "start": 812,
+        "end": 899
+      }
+    },
+    {
+      "text": "Because what works for a person that is making $5,000 a month right now, it's not the same strategy that a person that is making $50,000 need.",
+      "span": {
+        "start": 900,
+        "end": 1042
+      }
+    },
+    {
+      "text": "And it's going to ask us if we are on mobile or in a computer.",
+      "span": {
+        "start": 1136,
+        "end": 1198
+      }
+    },
+    {
+      "text": "In this case, we are on a phone.",
+      "span": {
+        "start": 1199,
+        "end": 1231
+      }
+    },
+    {
+      "text": "But this looks too clunky and we don't want to have this inside of our phone.",
+      "span": {
+        "start": 1355,
+        "end": 1432
+      }
+    },
+    {
+      "text": "So what we can do is just click that share button right in the middle.",
+      "span": {
+        "start": 1433,
+        "end": 1503
+      }
+    },
+    {
+      "text": "You can access your profile details.",
+      "span": {
+        "start": 1673,
+        "end": 1709
+      }
+    },
+    {
+      "text": "You can see all the communities that you are in.",
+      "span": {
+        "start": 1710,
+        "end": 1758
+      }
+    },
+    {
+      "text": "And you can also ask the AI chat button any questions that you have.",
+      "span": {
+        "start": 1759,
+        "end": 1827
+      }
+    },
+    {
+      "text": "So we can click open community.",
+      "span": {
+        "start": 1983,
+        "end": 2014
+      }
+    },
+    {
+      "text": "And in this case, I have already done that.",
+      "span": {
+        "start": 2015,
+        "end": 2058
+      }
+    },
+    {
+      "text": "So what I need to do is to copy the link.",
+      "span": {
+        "start": 2059,
+        "end": 2100
+      }
+    },
+    {
+      "text": "You see the comment has already been verified.",
+      "span": {
+        "start": 2132,
+        "end": 2178
+      }
+    },
+    {
+      "text": "If you have any questions, feel free to let us know.",
+      "span": {
+        "start": 2273,
+        "end": 2325
+      }
+    },
+    {
+      "text": "We are happy to help you out.",
+      "span": {
+        "start": 2326,
+        "end": 2355
+      }
+    },
+    {
+      "text": "This mobile version is still under development.",
+      "span": {
+        "start": 2356,
+        "end": 2403
+      }
+    },
+    {
+      "text": "So if you spot any issues, feel free to let us know.",
+      "span": {
+        "start": 2404,
+        "end": 2456
+      }
+    },
+    {
+      "text": "We are happy to help and get you on track as soon as possible.",
+      "span": {
+        "start": 2457,
+        "end": 2519
+      }
+    },
+    {
+      "text": "Ask anything to the AI agent.",
+      "span": {
+        "start": 2549,
+        "end": 2578
+      }
+    }
+  ],
+  "definitions": "not in source",
+  "numbers": [
+    {
+      "value": {
+        "text": "$5,000",
+        "span": {
+          "start": 947,
+          "end": 953
+        }
+      },
+      "unit": {
+        "text": "a month",
+        "span": {
+          "start": 954,
+          "end": 961
+        }
+      }
+    },
+    {
+      "value": {
+        "text": "$50,000",
+        "span": {
+          "start": 1029,
+          "end": 1036
+        }
+      },
+      "unit": "not in source"
+    }
+  ],
+  "entities": [
+    {
+      "name": {
+        "text": "Google",
+        "span": {
+          "start": 220,
+          "end": 226
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    },
+    {
+      "name": {
+        "text": "AI",
+        "span": {
+          "start": 842,
+          "end": 844
+        }
+      },
+      "kind": "unknown",
+      "role": "not in source"
+    }
+  ],
+  "steps": [
+    {
+      "index": 1,
+      "action": {
+        "text": "The first thing is to click the link that is underneath this video.",
+        "span": {
+          "start": 53,
+          "end": 120
+        }
+      }
+    },
+    {
+      "index": 2,
+      "action": {
+        "text": "And the next thing is to continue with Google or put your email and you will receive a code.",
+        "span": {
+          "start": 181,
+          "end": 273
+        }
+      }
+    },
+    {
+      "index": 3,
+      "action": {
+        "text": "Continue with Google.",
+        "span": {
+          "start": 320,
+          "end": 341
+        }
+      }
+    },
+    {
+      "index": 4,
+      "action": {
+        "text": "And the next thing is to upload a photo of us.",
+        "span": {
+          "start": 503,
+          "end": 549
+        }
+      }
+    },
+    {
+      "index": 5,
+      "action": {
+        "text": "Enter our name and our username.",
+        "span": {
+          "start": 550,
+          "end": 582
+        }
+      }
+    },
+    {
+      "index": 6,
+      "action": {
+        "text": "So we can go ahead and click that.",
+        "span": {
+          "start": 1043,
+          "end": 1077
+        }
+      }
+    },
+    {
+      "index": 7,
+      "action": {
+        "text": "Click next.",
+        "span": {
+          "start": 1078,
+          "end": 1089
+        }
+      }
+    },
+    {
+      "index": 8,
+      "action": {
+        "text": "And just like that, we will submit a profile.",
+        "span": {
+          "start": 1090,
+          "end": 1135
+        }
+      }
+    },
+    {
+      "index": 9,
+      "action": {
+        "text": "And just like that, we're going to have access to the personalized roadmap and our profile details.",
+        "span": {
+          "start": 1255,
+          "end": 1354
+        }
+      }
+    },
+    {
+      "index": 10,
+      "action": {
+        "text": "Scroll a little bit.",
+        "span": {
+          "start": 1504,
+          "end": 1524
+        }
+      }
+    },
+    {
+      "index": 11,
+      "action": {
+        "text": "Add to home screen.",
+        "span": {
+          "start": 1525,
+          "end": 1544
+        }
+      }
+    },
+    {
+      "index": 12,
+      "action": {
+        "text": "Add.",
+        "span": {
+          "start": 1561,
+          "end": 1565
+        }
+      }
+    },
+    {
+      "index": 13,
+      "action": {
+        "text": "And just like that, we are now going to have this in our mobile without needing to have a app to download.",
+        "span": {
+          "start": 1566,
+          "end": 1672
+        }
+      }
+    },
+    {
+      "index": 14,
+      "action": {
+        "text": "So the first thing is to watch this video.",
+        "span": {
+          "start": 1828,
+          "end": 1870
+        }
+      }
+    },
+    {
+      "index": 15,
+      "action": {
+        "text": "We can go ahead and open the community and it's going to redirect us to either a post or ask us to make a post.",
+        "span": {
+          "start": 1871,
+          "end": 1982
+        }
+      }
+    },
+    {
+      "index": 16,
+      "action": {
+        "text": "Paste it here.",
+        "span": {
+          "start": 2101,
+          "end": 2115
+        }
+      }
+    },
+    {
+      "index": 17,
+      "action": {
+        "text": "And just like that, I can continue with the roadmap inside of my phone.",
+        "span": {
+          "start": 2201,
+          "end": 2272
+        }
+      }
+    }
+  ],
+  "unmapped": [
+    {
+      "text": "We select the same account.",
+      "span": {
+        "start": 342,
+        "end": 369
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "We can click continue.",
+      "span": {
+        "start": 1232,
+        "end": 1254
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Just click add.",
+      "span": {
+        "start": 1545,
+        "end": 1560
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "Verify comment.",
+      "span": {
+        "start": 2116,
+        "end": 2131
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "I can click complete.",
+      "span": {
+        "start": 2179,
+        "end": 2200
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "I wish you the best of luck.",
+      "span": {
+        "start": 2520,
+        "end": 2548
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Get started with the roadmap.",
+      "span": {
+        "start": 2579,
+        "end": 2608
+      },
+      "reason": "below-extraction-threshold"
+    },
+    {
+      "text": "And I'll see you inside of the community.",
+      "span": {
+        "start": 2609,
+        "end": 2650
+      },
+      "reason": "no-field-for-this-content"
+    },
+    {
+      "text": "Ciao.",
+      "span": {
+        "start": 2651,
+        "end": 2656
+      },
+      "reason": "no-field-for-this-content"
+    }
+  ],
+  "coverage": {
+    "total_bytes": 2657,
+    "covered_bytes": 2603,
+    "pct": 97.97,
+    "unmapped_threshold_bytes": 32
+  }
+}

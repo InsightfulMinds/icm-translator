@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-06-dropped-objection",
+  "invention_class": "dropped-content",
+  "expect_codes": [
+    "UNMAPPED_OMISSION"
+  ],
+  "note": "A dropped objection with nothing in unmapped[]. The fixture removes the claim carrying \"One member raised an objection about the price during the call.\" and does NOT declare it as unmapped. It also restates coverage honestly (335 -> 272 bytes, 70.47%), because a careless dropper would be caught by the coverage gate and that would prove nothing. This stages the HARDER case: a dropper that covers its tracks. It still fails, because the verifier recomputes the uncovered regions from the source rather than reading the card's own unmapped list, and the resulting 66-byte hole is over the declared 32-byte bar."
+}

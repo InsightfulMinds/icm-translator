@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-03-normalized-name",
+  "invention_class": "normalized-name",
+  "expect_codes": [
+    "SPAN_TEXT_MISMATCH"
+  ],
+  "note": "A name spelled the way it usually is instead of the way it appeared — the failure the brief names in so many words. The transcript says \"Sara\"; the fixture ships \"Sarah\", the real spelling. This is not a hypothetical but the routine case: correcting it is the most tempting invention in the whole card, because it feels like a fix rather than a fabrication. The span is untouched, so the byte comparison catches it on the four bytes that matter."
+}

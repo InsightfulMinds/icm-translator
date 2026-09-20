@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/icm-translator/schema/lesson-card.v1.json",
+  "title": "ICM Lesson Card v1",
+  "description": "The output contract for the lesson-card.v1 profile. Every field below is REQUIRED and appears in every card in the order declared by `fieldOrder`, regardless of what the input contained. A field with nothing in the source carries the literal string `not in source`. Every leaf value taken from the input is a `quote` object carrying the verbatim text and the byte span it was cut from.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "generated_utc",
+    "source",
+    "title",
+    "speakers",
+    "claims",
+    "definitions",
+    "numbers",
+    "entities",
+    "steps",
+    "unmapped",
+    "coverage"
+  ],
+  "fieldOrder": [
+    "schema",
+    "profile",
+    "generated_utc",
+    "source",
+    "title",
+    "speakers",
+    "claims",
+    "definitions",
+    "numbers",
+    "entities",
+    "steps",
+    "unmapped",
+    "coverage"
+  ],
+
+  "$defs": {
+    "absent": {
+      "const": "not in source",
+      "description": "The one and only absent-value marker. Never null, never an empty string, never an empty array, never an omitted key."
+    },
+
+    "span": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "description": "A half-open byte range [start, end) into the UTF-8 bytes of the file named by source.file. Byte offsets, not character offsets and not line numbers: the inputs this profile accepts are single-line transcripts, where a line number locates nothing.",
+      "properties": {
+        "start": { "type": "integer", "minimum": 0 },
+        "end": { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "quote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "span"],
+      "description": "Verbatim text cut from the input, plus the span it was cut from. The invariant the verifier enforces: bytes(source.file)[span.start:span.end] decoded as UTF-8 is byte-identical to `text`. No trimming, no case folding, no whitespace collapsing, no spelling normalisation.",
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "span": { "$ref": "#/$defs/span" }
+      }
+    },
+
+    "quoteOrAbsent": {
+      "oneOf": [{ "$ref": "#/$defs/quote" }, { "$ref": "#/$defs/absent" }]
+    },
+
+    "listOrAbsent": {
+      "description": "A populated array, or the absent marker. NEVER an empty array — `[]` is ambiguous between 'the input had none' and 'the converter did not look', and this contract does not permit that ambiguity.",
+      "oneOf": [
+        { "type": "array", "minItems": 1 },
+        { "$ref": "#/$defs/absent" }
+      ]
+    }
+  },
+
+  "properties": {
+    "schema": {
+      "const": "lesson-card.v1",
+      "description": "Identifies this contract. A reader who has this string can open this file and check the card against it."
+    },
+
+    "profile": {
+      "const": "lesson-card.v1",
+      "description": "The conversion profile that produced the card. The engine is profile-agnostic; this names which contract was selected."
+    },
+
+    "generated_utc": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+      "description": "Wall clock at generation, read from the system at write time. File metadata about the card, NOT a claim extracted from the input."
+    },
+
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "sha256", "bytes", "duration_seconds"],
+      "description": "Identifies the exact bytes every span in this card points into. file/sha256/bytes/duration_seconds are metadata ABOUT the input file, not claims extracted FROM it — the transcript does not state its own hash. duration_seconds comes from the transcription metadata shipped in inputs/PROVENANCE.md, and is `not in source` when no such metadata exists.",
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "Path to the input, relative to the repo root. This file ships in the repo so every span is re-checkable."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "sha256 of the input file. If this does not match the shipped bytes, every span in the card is void and the verifier fails before checking anything else."
+        },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "duration_seconds": {
+          "oneOf": [{ "type": "number", "minimum": 0 }, { "$ref": "#/$defs/absent" }]
+        }
+      }
+    },
+
+    "title": {
+      "$ref": "#/$defs/quoteOrAbsent",
+      "description": "A title stated IN the input, verbatim. Never composed, never borrowed from the filename, never borrowed from a video's published title — if the speaker did not say it, this is `not in source`."
+    },
+
+    "speakers": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "evidence"],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/quote",
+            "description": "The speaker's name EXACTLY as it appeared in the input. Never normalised to the usual spelling. If the transcript renders a name the way dictation heard it, the card carries what the transcript said."
+          },
+          "evidence": {
+            "$ref": "#/$defs/quote",
+            "description": "The span of the phrase that established the speaker, e.g. a self-introduction. A name with no establishing phrase is not a speaker."
+          }
+        }
+      }
+    },
+
+    "claims": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": { "$ref": "#/$defs/quote" },
+      "description": "Assertions the input makes, each verbatim with its span."
+    },
+
+    "definitions": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["term", "definition"],
+        "properties": {
+          "term": { "$ref": "#/$defs/quote" },
+          "definition": {
+            "$ref": "#/$defs/quote",
+            "description": "The definition AS GIVEN in the input. Not a better definition, not a corrected one."
+          }
+        }
+      }
+    },
+
+    "numbers": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "unit"],
+        "properties": {
+          "value": {
+            "$ref": "#/$defs/quote",
+            "description": "The figure verbatim, including any currency symbol, separators and spelling as they appeared. `$5,000` is not `5000`."
+          },
+          "unit": {
+            "$ref": "#/$defs/quoteOrAbsent",
+            "description": "The unit AS STATED, span-backed. A unit the input did not state is `not in source` — units are the easiest place to smuggle an invention in."
+          }
+        }
+      },
+      "description": "A number with no span cannot ship. This is the field where a single drifted digit loses the comp, so it is fully span-backed."
+    },
+
+    "entities": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind", "role"],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/quote",
+            "description": "Spelled as it appeared in the input. Never corrected."
+          },
+          "kind": {
+            "enum": ["person", "tool", "org", "unknown"],
+            "description": "A SCHEMA CLASSIFICATION, not a claim extracted from the input. It is only ever set to something other than `unknown` when the input itself states the role, in which case `role` carries that span. This field is the one place the card holds a label rather than a quote, and it is deliberately fenced: no role span means `unknown`."
+          },
+          "role": {
+            "$ref": "#/$defs/quoteOrAbsent",
+            "description": "The span where the input stated what this entity is. `not in source` forces kind to `unknown`."
+          }
+        }
+      }
+    },
+
+    "steps": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "action"],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based position in the procedure. Must increase by exactly 1 across the array."
+          },
+          "action": { "$ref": "#/$defs/quote" }
+        }
+      },
+      "description": "The ordered procedure, only if one was stated. Step spans must be strictly increasing in `start`: a procedure is narrated in order, so a step whose span jumps backwards is pointing at a repeat of the same words somewhere else in the input. That is the neighbour attack, and the verifier rejects it even though the bytes match."
+    },
+
+    "unmapped": {
+      "allOf": [{ "$ref": "#/$defs/listOrAbsent" }],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "span", "reason"],
+        "properties": {
+          "text": { "type": "string", "minLength": 1 },
+          "span": { "$ref": "#/$defs/span" },
+          "reason": {
+            "enum": [
+              "no-field-for-this-content",
+              "below-extraction-threshold",
+              "ambiguous-attribution"
+            ],
+            "description": "Why the schema had nowhere to put it. A closed enum, so this stays a lookup rather than a paragraph of prose the reader has to trust."
+          }
+        }
+      },
+      "description": "What the schema could not hold. The verifier RECOMPUTES this set from the source rather than trusting the card: any stretch of input not covered by some span, above the declared threshold, must appear here. A silently dropped passage fails the card."
+    },
+
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_bytes", "covered_bytes", "pct", "unmapped_threshold_bytes"],
+      "description": "How much of the input the card accounts for. Fully recomputable from the spans, and the verifier recomputes it — a card cannot assert a coverage number its own spans do not support.",
+      "properties": {
+        "total_bytes": { "type": "integer", "minimum": 1 },
+        "covered_bytes": { "type": "integer", "minimum": 0 },
+        "pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "unmapped_threshold_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "An uncovered run of at least this many bytes must be declared in `unmapped[]`. Stated in the card so the reader can check the bar the card set for itself."
+        }
+      }
+    }
+  }
+}
