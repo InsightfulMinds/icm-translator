@@ -46,7 +46,7 @@ figure corrected mid-sentence.
 as any meeting recording's text, which does not exclude a two-party argument; it just does not name
 one as the example. It ships because what the tool does when the shape of the conversation changes
 is worth more to a reader than a fourth clean pass. The card it produces verifies (all spans byte-exact, shape identical to the other
-three) and it also exposes five real limitations, which are written up in the README under
+three) and it also exposes five real limitations, which are written up in `docs/WALKTHROUGH.md` under
 **"What the fourth input exposed"**. None of them were fixed quietly. None of them are invention.
 
 **It has no `duration_seconds`.** There is no recording, so `inputs/meta.json` has no entry for it,

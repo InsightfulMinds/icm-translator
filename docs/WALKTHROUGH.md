@@ -52,7 +52,7 @@ the page is about.
 node checker/convert.mjs        # 4 shipped inputs -> 4 cards
 node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
 node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 138 assertions across 26 staged inventions     (exit 0 / 1)
+node checker/selftest.mjs       # 141 assertions across 26 staged inventions     (exit 0 / 1)
 ```
 
 No dependencies, no install, no network. Node 22+. Everything below was produced by those commands.
@@ -527,6 +527,16 @@ artifact, not on the goodwill of the thing that wrote it.
     one would sit visibly in the file while being invisible to every check above; and no list cites
     **the same span twice**, so one sentence in the input cannot be listed as three claims
 
+Five more gates run alongside the numbered checks and are not repeated in the list above because each
+is a single fixed rule rather than a walk over the card: `source.file` must resolve inside the repo
+and under `inputs/` or `fixtures/` (`SOURCE_FILE_ESCAPES_REPO`, `SOURCE_FILE_NOT_ALLOWED`, fixture
+`neg-22`); a card named after a shipped input must cite exactly that input
+(`SOURCE_FILE_IDENTITY_MISMATCH`); `source.duration_seconds` must match `inputs/meta.json`
+(`SOURCE_DURATION_MISMATCH`, `neg-21`); a speaker's `evidence` span is bounded to a small share of
+the input (`EVIDENCE_SPAN_TOO_LARGE`, `neg-25`); and total coverage has a floor
+(`COVERAGE_BELOW_FLOOR`, staged directly by `neg-19`, and the reason `neg-05` and `neg-06` each
+expect two codes).
+
 Check 11 stops a card from leaving real content with **no span anywhere on it**, the failure mode
 the brief's CRM (customer-relationship-management) example names, *"a CRM note that silently omits
 the objection the prospect raised is worse than useless."* It is a narrower guarantee than that
@@ -848,7 +858,7 @@ watched them fire:
   item key removed) and requires the shape test to reject each, having first confirmed that two
   identical cards pass it
 
-A gate nobody has seen fail is not a gate. The full run is 138 assertions.
+A gate nobody has seen fail is not a gate. The full run is 141 assertions.
 
 ---
 
@@ -885,15 +895,15 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 exit=0
 
 $ node checker/selftest.mjs ; echo "exit=$?"
-...138 individual "pass" lines in nine groups, listed below...
-138 passed, 0 failed.
+...141 individual "pass" lines in nine groups, listed below...
+141 passed, 0 failed.
 exit=0
 ```
 
 Those last two are the only outputs elided on this page, and both are elided to their summary line
 only. Run them yourself and you get the per-line detail.
 
-`selftest.mjs`'s 138 assertions are grouped nine ways. The group headers below name what each group
+`selftest.mjs`'s 141 assertions are grouped nine ways. The group headers below name what each group
 checks, reproduced verbatim from a real run:
 
 ```
@@ -908,11 +918,11 @@ checks, reproduced verbatim from a real run:
 ── the shipped cards verify against the shipped inputs ────────────────────────
 ```
 
-The count moved from 36 to 37 when the fourth input was added, then to 89 as twelve more negative
-fixtures (schema violations, and quotes that byte-match but sit in the wrong relationship to the
-field they're placed in) and a two-transcript unseen-input round trip were added. It has grown again
-since, as later hardening passes closed further gaps and added their own fixtures and checks, most
-recently an oversized-`evidence`-span bypass, bringing the total to 129. Most groups above iterate a
+The count moved from 36 to 37 when the fourth input was added, then to 117 (commit `cf2f83b`) as
+schema validation, the relationship checks, eighteen more negative fixtures and a two-transcript
+unseen-input round trip were added, to 129 (`410d01a`) with the evidence-span bound and the
+own-transcript fix, to 138 (`7c84833`) with the two duplicate gates, and to 141 with the round trip
+for a transcript dropped under `inputs/`. Most groups above iterate a
 directory (`fixtures/neg-*`, `cards/`) rather than a hardcoded list, so a new fixture or a new card
 adds assertions rather than relaxing existing ones. No check was weakened, edited or skipped to
 accommodate any of it.

@@ -46,7 +46,9 @@ code.
 
 ## Two ways to run it, one gate over both
 
-1. **As a Claude project.** Drop this folder in. `rules.md` is the conversion procedure and
+1. **As a Claude project.** Drop in the six files the README lists (`identity.md`, `rules.md`,
+   `examples.md` and the three under `reference/`), not `checker/`, `cards/`, `fixtures/` or
+   `inputs/`. `rules.md` is the conversion procedure and
    `reference/` is the contract. Claude reads the transcript and emits a card.
 2. **As a script.** `node checker/convert.mjs`, a deterministic reference implementation that can
    only emit text it sliced out of the input.

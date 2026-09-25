@@ -288,6 +288,33 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
       rmSync(cardPath, { force: true });
     }
   }
+
+  // The same round trip for a transcript dropped under inputs/, which is what the README tells a
+  // reader to do. This is asserted separately because it once broke while every test above still
+  // passed: a gate added on 2026-09-24 rejected any inputs/*.txt the repo had not shipped, by
+  // filename, before reading a byte, and the two e2e transcripts above live under fixtures/ so they
+  // never saw it. The temp file is unregistered in inputs/sha256sums.txt on purpose (a reader's own
+  // file is not registered either), and both it and its card are deleted again in `finally`.
+  // The third assertion is the one that matters most: the no-argument verify run, the README's
+  // headline command, must stay exit 0 with the reader's card sitting in cards/.
+  const OWN_INPUT = join(ROOT, 'inputs', 'selftest-own-transcript.txt');
+  const OWN_CARD = join(ROOT, 'cards', 'selftest-own-transcript.card.json');
+  const VERIFIER = join(ROOT, 'checker/verify-traces.mjs');
+  try {
+    writeFileSync(OWN_INPUT, 'Hi, I am Priya and this is a short walkthrough. First, open the settings menu. It costs $12 a month.\n');
+    const conv = spawnSync(process.execPath, [CONVERTER, OWN_INPUT], { encoding: 'utf8' });
+    if (conv.status !== 0) fail('inputs/<own>.txt: convert.mjs exits 0', `exited ${conv.status}\n${conv.stdout}${conv.stderr}`);
+    else pass('inputs/<own>.txt: convert.mjs exits 0', 'unregistered transcript under inputs/');
+    const r = run(OWN_CARD);
+    if (r.code !== 0) fail('inputs/<own>.txt: verify-traces.mjs exits 0', `exited ${r.code} with [${r.codes.join(', ')}]`);
+    else pass('inputs/<own>.txt: verify-traces.mjs exits 0', 'a reader\'s own file is not refused by name');
+    const all = spawnSync(process.execPath, [VERIFIER], { encoding: 'utf8', cwd: ROOT });
+    if (all.status !== 0) fail('no-argument verify-traces.mjs still exits 0 with the reader\'s card present', `exited ${all.status}\n${all.stdout}${all.stderr}`);
+    else pass('no-argument verify-traces.mjs still exits 0 with the reader\'s card present', 'the headline command is not poisoned by a new card');
+  } finally {
+    rmSync(OWN_INPUT, { force: true });
+    rmSync(OWN_CARD, { force: true });
+  }
 }
 
 console.log('\n── the shipped cards cite registered, hash-matching inputs ────────────────────');
