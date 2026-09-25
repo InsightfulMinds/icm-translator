@@ -45,7 +45,7 @@ the page is about.
 node checker/convert.mjs        # 4 shipped inputs -> 4 cards
 node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
 node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 129 assertions across 24 staged inventions     (exit 0 / 1)
+node checker/selftest.mjs       # 138 assertions across 26 staged inventions     (exit 0 / 1)
 ```
 
 No dependencies, no install, no network. Node 22+. Everything below was produced by those commands.
@@ -123,7 +123,7 @@ on trust: each row ends in a command you can run yourself.
 | the question | the answer | settle it yourself |
 |---|---|---|
 | **Does the output shape hold across different inputs?** | Yes. Four inputs — 1,441 to 7,573 bytes, two transcription pipelines, one hand-written argument, one file with no trailing newline — produce four cards with an identical field list in an identical order, matching the contract's own `fieldOrder`. | `node checker/shape-diff.mjs` → **exit 0** · [detail](#1--the-output-shape-holds-across-different-inputs) |
-| **Does every fact in the output trace to the input?** | Yes for every span-backed value — checked, not asserted. Every such value is a verbatim quote plus the byte span it was cut from; an independent verifier validates the full JSON Schema, then re-reads the input and re-slices every span. Twenty-four staged inventions are each proven caught, six of them walked through in detail below. One field (`duration_seconds`) is sourced metadata rather than a checked fact, and a short list of known verification gaps is named in [Limits, stated plainly](#limits-stated-plainly). | `node checker/verify-traces.mjs` → **exit 0** · [detail](#3--every-fact-traces-to-the-input) |
+| **Does every fact in the output trace to the input?** | Yes for every span-backed value — checked, not asserted. Every such value is a verbatim quote plus the byte span it was cut from; an independent verifier validates the full JSON Schema, then re-reads the input and re-slices every span. Twenty-six staged inventions are each proven caught, six of them walked through in detail below. One field (`duration_seconds`) is sourced metadata rather than a checked fact, and a short list of known verification gaps is named in [Limits, stated plainly](#limits-stated-plainly). | `node checker/verify-traces.mjs` → **exit 0** · [detail](#3--every-fact-traces-to-the-input) |
 | **Is the contract written down in `reference/` where a reader can check it?** | Yes. `reference/schema/lesson-card.v1.json` is a JSON Schema with every field, the absent-marker rule and the span definition. `field-definitions.md` says what each field means; `format-spec.md` fixes the format. `verify-traces.mjs` validates a card against the full schema before any trace check runs; it and `shape-diff.mjs` also read `fieldOrder` from that schema file at runtime rather than hardcoding it. `convert.mjs` does not read the schema (below). | open [`reference/`](reference/) · [detail](#2--the-contract-is-written-down-in-reference) |
 | **README quality — can a stranger figure this out?** | Four commands, no install, no network, no keys, no arguments. Every claim on this page is printed next to the command that produces it, so you can stop reading at any point and check what you have read so far. | run the four commands above |
 
@@ -515,6 +515,10 @@ artifact, not on the goodwill of the thing that wrote it.
     over. Both the uncovered runs and the threshold itself are checked against the profile, never read
     out of the card being judged. See `reference/field-definitions.md`, the `unmapped[]` section, for
     what this does and does not verify about a declared entry's stated reason
+12. the card **file** repeats no key within one object, comparing keys after decoding JSON escapes
+    so `"\u0074itle"` and `"title"` collide — `JSON.parse` keeps only the last copy, so an earlier
+    one would sit visibly in the file while being invisible to every check above; and no list cites
+    **the same span twice**, so one sentence in the input cannot be listed as three claims
 
 Check 11 stops a card from leaving real content with **no span anywhere on it** — the failure mode
 the brief's CRM (customer-relationship-management) example names, *"a CRM note that silently omits
@@ -535,21 +539,21 @@ mechanically verify semantic relatedness between two spans, only their distance 
 `reference/field-definitions.md`, "What the verifier cannot fully enforce," for the full statement of
 this limit.
 
-## 4 · Twenty-four staged inventions, six walked through in detail below
+## 4 · Twenty-six staged inventions, six walked through in detail below
 
-`fixtures/` holds a clean control card and twenty-four negatives. Each negative is **the control plus
+`fixtures/` holds a clean control card and twenty-six negatives. Each negative is **the control plus
 exactly one mutation**, generated by `fixtures/make-negatives.mjs` rather than hand-written, so
 "only one thing changed" is a property of the build and not a promise in a comment. Each fixture
 carries an `EXPECT.json` naming the invention class it stages and the error code it must fire. The
 first six stage pure invention (a fact with no support anywhere in the input) and are walked through
-below one at a time; the remaining eighteen stage malformed cards (schema violations), cards that
+below one at a time; the remaining twenty stage malformed cards (schema violations), cards that
 misuse a real, in-input quote (an unrelated speaker's name, an unassociated unit or definition, a
 role with nothing near it — the relationship checks in [§3](#3--every-fact-traces-to-the-input) exist
-because of that group), and cards that attack the checker's own machinery (a duplicate key hidden
-behind a `\u` escape, a source path that escapes the repo, a reversed step order, a fabricated
+because of that group), and cards that attack the checker's own machinery (a duplicate key, spelled
+literally and again behind a `\u` escape, a claim listed twice at the same span, a source path that escapes the repo, a reversed step order, a fabricated
 duration, an oversized `evidence` span, and an aggregate coverage omission).
 
-All twenty-four are built from one 386-byte transcript, `fixtures/fixture-transcript.txt`, which is
+All twenty-six are built from one 386-byte transcript, `fixtures/fixture-transcript.txt`, which is
 short enough to print in full:
 
 ```
@@ -837,7 +841,7 @@ watched them fire:
   item key removed) and requires the shape test to reject each, having first confirmed that two
   identical cards pass it
 
-A gate nobody has seen fail is not a gate. The full run is 129 assertions.
+A gate nobody has seen fail is not a gate. The full run is 138 assertions.
 
 ---
 
@@ -874,15 +878,15 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 exit=0
 
 $ node checker/selftest.mjs ; echo "exit=$?"
-...129 individual "pass" lines in nine groups, listed below...
-129 passed, 0 failed.
+...138 individual "pass" lines in nine groups, listed below...
+138 passed, 0 failed.
 exit=0
 ```
 
 Those last two are the only outputs elided on this page, and both are elided to their summary line
 only — run them yourself and you get the per-line detail.
 
-`selftest.mjs`'s 129 assertions are grouped nine ways. The group headers below name what each group
+`selftest.mjs`'s 138 assertions are grouped nine ways. The group headers below name what each group
 checks, reproduced verbatim from a real run:
 
 ```
@@ -1087,7 +1091,7 @@ reference/     THE CONTRACT — schema/lesson-card.v1.json, field-definitions.md
 README.md      this file
 checker/       convert.mjs · verify-traces.mjs · schema-validate.mjs · shape-diff.mjs · selftest.mjs
 inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + PROVENANCE.md
-fixtures/      clean control + 24 staged inventions + 2 unseen-input e2e transcripts + the generator
+fixtures/      clean control + 26 staged inventions + 2 unseen-input e2e transcripts + the generator
 cards/         the 4 outputs
 audits/        generated by shape-diff.mjs, not committed — your run writes it
 ```

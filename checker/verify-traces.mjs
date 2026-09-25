@@ -143,12 +143,59 @@ function byteToCodepoint(buf) {
 
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
 
+// Decode a JSON string literal's contents (the raw text BETWEEN the quotes, escapes untouched — the
+// shape parseString() below returns) into the actual string value JSON.parse would produce. A JSON
+// object key is a string literal like any other, and JSON lets the same key be spelled multiple ways
+// by escaping characters that don't need it: `"\u0074itle"` and `"title"` parse to the identical key
+// `title`. The duplicate-key gate below used to compare these RAW literals, so an
+// attacker could spell the duplicate key differently each time and sail through — the exact bypass
+// this decode closes. Handles every escape JSON actually permits: `\" \\ \/ \b \f \n \r \t` and
+// `\uXXXX`. Surrogate pairs need no special handling: two consecutive `\uXXXX` escapes decoding to a
+// high surrogate followed by a low surrogate concatenate into the same UTF-16 code unit pair a
+// literal astral character would, because JS strings are already sequences of UTF-16 code units —
+// there is nothing extra to combine. Throws on an escape sequence JSON does not define; the one
+// caller treats any exception here as "let JSON.parse produce the real error" (see its comment),
+// which is correct because a string that reaches here already came from parseString() successfully
+// finding a closing quote — the only way decoding can still fail is an invalid escape, which
+// JSON.parse would reject too.
+function decodeJSONKey(raw) {
+  let out = '';
+  let i = 0;
+  while (i < raw.length) {
+    const c = raw[i];
+    if (c !== '\\') { out += c; i++; continue; }
+    const next = raw[i + 1];
+    switch (next) {
+      case '"': out += '"'; i += 2; break;
+      case '\\': out += '\\'; i += 2; break;
+      case '/': out += '/'; i += 2; break;
+      case 'b': out += '\b'; i += 2; break;
+      case 'f': out += '\f'; i += 2; break;
+      case 'n': out += '\n'; i += 2; break;
+      case 'r': out += '\r'; i += 2; break;
+      case 't': out += '\t'; i += 2; break;
+      case 'u': {
+        const hex = raw.slice(i + 2, i + 6);
+        if (!/^[0-9a-fA-F]{4}$/.test(hex)) throw new Error(`invalid \\u escape in key literal: ${JSON.stringify(raw)}`);
+        out += String.fromCharCode(parseInt(hex, 16));
+        i += 6;
+        break;
+      }
+      default:
+        throw new Error(`invalid escape '\\${next}' in key literal: ${JSON.stringify(raw)}`);
+    }
+  }
+  return out;
+}
+
 // A card whose keys repeat within the same object parses fine — JSON.parse keeps the LAST value —
 // but the file a human opens still visibly contains whatever the FIRST (shadowed) value was. This
 // scans the raw text with a small hand-rolled JSON tokenizer (not JSON.parse, which cannot see a
 // duplicate once it has collapsed it) and reports every key that appears more than once WITHIN THE
 // SAME object literal. It must not flag legitimate repeats ACROSS different objects — every card
 // repeats `text`, `span`, `start` dozens of times, once per quote, and none of that is a problem.
+// Keys are compared by their DECODED value (via decodeJSONKey, above), not their raw spelling, so
+// `"\u0074itle"` and `"title"` — which JSON.parse treats as the exact same key — collide here too.
 // Throws on malformed JSON; the caller treats that as "let JSON.parse produce the real error".
 function findDuplicateKeys(text) {
   const dups = [];
@@ -191,7 +238,8 @@ function findDuplicateKeys(text) {
     while (true) {
       skipWs();
       if (text[i] !== '"') throw new Error(`expected key string at ${i}`);
-      const key = parseString();
+      const rawKey = parseString();
+      const key = decodeJSONKey(rawKey);
       const count = (seen.get(key) || 0) + 1;
       seen.set(key, count);
       if (count > 1) dups.push({ path: pathStr || '(root)', key, count });
@@ -607,6 +655,25 @@ function verifyCard(cardPath) {
       if (why) P('STEP_ORDER_NOT_INCREASING', `steps[${i}] ${why}`);
       prev = s.start;
       prevPath = `steps[${i}]`;
+    });
+  }
+
+  // 6b · no list cites the same span twice.
+  //     Every byte of a repeated entry is real, so it passes the byte comparison — but a card that
+  //     lists one claim three times is asserting the input said it three times, which it did not.
+  //     A sentence the speaker genuinely repeated sits at a DIFFERENT span and is not caught here.
+  //     steps[] is left to check 6: a repeated step span already fails its ordering rule.
+  const IDENTIFYING_QUOTE = { claims: null, numbers: 'value', entities: 'name', definitions: 'term', speakers: 'name', unmapped: null };
+  for (const [field, sub] of Object.entries(IDENTIFYING_QUOTE)) {
+    if (!Array.isArray(card[field])) continue;
+    const seen = new Map();
+    card[field].forEach((item, i) => {
+      const s = (sub ? item?.[sub] : item)?.span;
+      if (!s || typeof s.start !== 'number') return; // already reported by verifyQuote or the schema gate
+      const key = `${s.start},${s.end}`;
+      if (seen.has(key))
+        P('DUPLICATE_SPAN', `${field}[${i}] cites [${s.start},${s.end}), the same span as ${field}[${seen.get(key)}] — the input says it once, so the card may list it once`);
+      else seen.set(key, i);
     });
   }
 

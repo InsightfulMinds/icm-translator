@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-27-duplicate-claim",
+  "invention_class": "duplicate-claim",
+  "expect_codes": [
+    "DUPLICATE_SPAN"
+  ],
+  "note": "claims[0] appended to claims[] once more, unchanged — the same text at the same span, twice. Every byte is real and re-slices perfectly, and a repeat adds no new covered bytes, so coverage and both omission gates are untouched. Before this check the card verified with 0 problems, exit 0, while asserting the speaker made the point twice when the input says it once. Caught because no list may cite the same span twice. A sentence the speaker genuinely repeated sits at a different span and is not affected."
+}

@@ -197,6 +197,8 @@ close is content with **no covering span at all**: declare nothing, and the hole
 - Every leaf that came from the input is a quote with a span; everything else is `not in source` or
   declared metadata.
 - No empty arrays. A field with nothing in it is `not in source`, never `[]`.
+- No list cites the same span twice (`DUPLICATE_SPAN`), and no object repeats a key
+  (`DUPLICATE_KEY`). A sentence the speaker really repeated has its own span; cite that one.
 - `coverage` recomputed from your own spans, not estimated.
 - `generated_utc` read from a real clock.
 

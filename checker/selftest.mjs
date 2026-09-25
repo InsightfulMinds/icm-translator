@@ -58,7 +58,7 @@ const negDirs = readdirSync(join(ROOT, 'fixtures')).filter((d) => d.startsWith('
 // path this repo had not itself shipped and registered — which broke the documented workflow of
 // dropping a reader's own transcript into inputs/ and verifying it. See checker/verify-traces.mjs's
 // step "2c" comment and fixtures/make-negatives.mjs for the full removal rationale.
-const EXPECTED_NEG_COUNT = 24;
+const EXPECTED_NEG_COUNT = 26;
 if (negDirs.length !== EXPECTED_NEG_COUNT) fail(`${EXPECTED_NEG_COUNT} negative fixtures present`, `found ${negDirs.length}`);
 else pass(`${EXPECTED_NEG_COUNT} negative fixtures present`);
 
@@ -88,14 +88,14 @@ console.log('\n── each negative is the control plus exactly one mutation ─
   for (const d of negDirs) {
     const negText = readFileSync(join(ROOT, 'fixtures', d, 'card.json'), 'utf8');
 
-    // neg-20's mutation is a duplicate JSON key, which by construction is INVISIBLE once JSON.parse
+    // neg-20's and neg-26's mutation is a duplicate JSON key, which by construction is INVISIBLE once JSON.parse
     // has collapsed it to the last value — there is no parsed-key diff to measure. What actually
     // proves "the control plus one mutation" here is the opposite pairing: the parsed object is
     // IDENTICAL to the control (last-value-wins gives back exactly the control's own title), while
     // the raw bytes on disk are NOT — that gap between "what the object says" and "what the file
     // contains" is the whole finding, so it is asserted directly instead of forced through the
     // generic key-diff check below.
-    if (d === 'neg-20-duplicate-key') {
+    if (d === 'neg-20-duplicate-key' || d === 'neg-26-escaped-key-duplicate') {
       const neg = JSON.parse(negText);
       const parsedIdentical = JSON.stringify(neg) === JSON.stringify(control);
       const rawDiffers = negText !== controlText;

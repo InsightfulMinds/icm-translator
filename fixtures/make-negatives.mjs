@@ -430,6 +430,33 @@ const NEGATIVES = [
       return text.replace(marker, `"title": "How To Defraud The Board In Four Easy Steps",\n  ${marker}`);
     },
   },
+  {
+    dir: 'neg-26-escaped-key-duplicate',
+    class: 'escaped-key-duplicate',
+    expect_codes: ['DUPLICATE_KEY'],
+    note:
+      'neg-20 stages the same key spelled LITERALLY twice; this fixture stages the ' +
+      'bypass the original findDuplicateKeys() actually had — the SAME key spelled DIFFERENTLY. JSON lets a ' +
+      'key be written as a `\\uXXXX` escape of any of its characters: `"\\u0074itle"` and `"title"` are, byte ' +
+      'for byte, two different string literals, but JSON.parse decodes both to the identical key `title` and ' +
+      'keeps the LAST one — exactly the same last-wins collapse neg-20 exploits, just spelled around the ' +
+      'literal-string comparison the pre-fix detector used. Reproduced live before the fix: a fabricated ' +
+      '`"\\u0074itle"` key (decodes to `title`) inserted before the real, literally-spelled `"title"` key ' +
+      'verified with 0 problems, exit 0, while `INVENTED HEADLINE NOBODY SAID` sat in the file in plain text. ' +
+      'After the fix, findDuplicateKeys() decodes every key through decodeJSONKey() before comparing, so the ' +
+      'escaped spelling collides with the plain one and DUPLICATE_KEY fires — identical outcome to neg-20, ' +
+      'from a spelling the old comparison could not see as the same key at all.',
+    mutate: () => {}, // the mutation is not at the object level — see postText.
+    postText: (text) => {
+      const marker = '"title": "not in source",';
+      if (!text.includes(marker)) throw new Error('neg-26: title line not found in control text');
+      // `\u0074` decodes to the single character `t`, so `\u0074itle` and `title` are different JSON
+      // string LITERALS (different bytes on disk) that decode to the identical key. Escaping just the
+      // first character is enough to make the point; the detector must not depend on which
+      // character(s) of the key happen to be escaped.
+      return text.replace(marker, `"\\u0074itle": "INVENTED HEADLINE NOBODY SAID",\n  ${marker}`);
+    },
+  },
 
   // ── FIX-1: the whole-file speakers[].evidence attack a second adversarial reviewer landed ────────
   // against the hardened verifier. Recorded here after being reproduced live against the real
@@ -458,6 +485,21 @@ const NEGATIVES = [
       c.coverage.pct = 100;
     },
   },
+  {
+    dir: 'neg-27-duplicate-claim',
+    class: 'duplicate-claim',
+    expect_codes: ['DUPLICATE_SPAN'],
+    note:
+      'claims[0] appended to claims[] once more, unchanged — the same text at the same span, twice. ' +
+      'Every byte is real and re-slices perfectly, and a repeat adds no new covered bytes, so coverage ' +
+      'and both omission gates are untouched. Before this check the card verified with 0 problems, exit 0, ' +
+      'while asserting the speaker made the point twice when the input says it once. Caught because ' +
+      'no list may cite the same span twice. A sentence the speaker genuinely repeated sits at a different ' +
+      'span and is not affected.',
+    mutate: (c) => {
+      c.claims.push(JSON.parse(JSON.stringify(c.claims[0])));
+    },
+  },
 ];
 
 let n = 0;
@@ -465,7 +507,7 @@ for (const neg of NEGATIVES) {
   const card = control();
   neg.mutate(card);
   mkdirSync(join(HERE, neg.dir), { recursive: true });
-  // postText: for the one negative (neg-20) whose mutation lives in the raw bytes rather than the
+  // postText: for the negatives (neg-20, neg-26) whose mutation lives in the raw bytes rather than the
   // parsed object — a duplicate JSON key is, by construction, invisible once JSON.parse has kept
   // only the last value, so it cannot be expressed as an edit to the in-memory `card`.
   const text = neg.postText ? neg.postText(JSON.stringify(card, null, 2) + '\n') : JSON.stringify(card, null, 2) + '\n';

@@ -244,6 +244,8 @@ A card is verified when `checker/verify-traces.mjs` exits `0`, which requires al
     somewhere in the card — declaring it in `unmapped[]` is the normal way to supply that span, but
     the check is symmetric across every field (see "unmapped[]" above for what this does and does not
     verify about a declared entry's reason)
+14. the card file repeats no key within one object, with keys compared after decoding JSON escapes
+    (`"\u0074itle"` and `"title"` are the same key), and no list cites the same span twice
 
 Exit `1` on any failure, with the expected and actual text printed at the first point they diverge.
 

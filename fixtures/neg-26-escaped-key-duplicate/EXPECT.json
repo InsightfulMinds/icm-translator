@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-26-escaped-key-duplicate",
+  "invention_class": "escaped-key-duplicate",
+  "expect_codes": [
+    "DUPLICATE_KEY"
+  ],
+  "note": "neg-20 stages the same key spelled LITERALLY twice; this fixture stages the bypass the original findDuplicateKeys() actually had — the SAME key spelled DIFFERENTLY. JSON lets a key be written as a `\\uXXXX` escape of any of its characters: `\"\\u0074itle\"` and `\"title\"` are, byte for byte, two different string literals, but JSON.parse decodes both to the identical key `title` and keeps the LAST one — exactly the same last-wins collapse neg-20 exploits, just spelled around the literal-string comparison the pre-fix detector used. Reproduced live before the fix: a fabricated `\"\\u0074itle\"` key (decodes to `title`) inserted before the real, literally-spelled `\"title\"` key verified with 0 problems, exit 0, while `INVENTED HEADLINE NOBODY SAID` sat in the file in plain text. After the fix, findDuplicateKeys() decodes every key through decodeJSONKey() before comparing, so the escaped spelling collides with the plain one and DUPLICATE_KEY fires — identical outcome to neg-20, from a spelling the old comparison could not see as the same key at all."
+}
