@@ -375,7 +375,7 @@ function verifyCard(cardPath) {
   if (!/^(?:inputs|fixtures)\//.test(srcRel))
     return problems.concat([{ code: 'SOURCE_FILE_NOT_ALLOWED', why: `source.file \`${srcRel}\` is not under inputs/ or fixtures/` }]);
 
-  // 2c · REMOVED (FIX-1, 2026-09-24). This used to reject any inputs/*.txt path that was not one of
+  // 2c · REMOVED 2026-09-24. This used to reject any inputs/*.txt path that was not one of
   //      the four files this repo ships (SOURCE_FILE_UNREGISTERED), on the theory that it closed a
   //      "smuggled input" hole. It didn't just close that hole, it broke the tool's headline use
   //      case: this repo's whole pitch is "drop your own transcript into inputs/, run the documented

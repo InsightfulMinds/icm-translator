@@ -53,8 +53,8 @@ console.log('\n── the control must verify clean ─────────�
 console.log('\n── each negative fires on its own gate, and only its own ──────────────────────');
 const negDirs = readdirSync(join(ROOT, 'fixtures')).filter((d) => d.startsWith('neg-')).sort();
 // 6 original + 12 schema/relationship fixtures (neg-07..neg-18) + 5 property fixtures (neg-19, neg-20, neg-21, neg-22,
-// neg-24) + 1 FIX-1 fixture (neg-25-evidence-span-too-large). neg-23-source-file-unregistered was
-// REMOVED 2026-09-24 (FIX-1): it staged SOURCE_FILE_UNREGISTERED, a gate that rejected any inputs/
+// neg-24) + 1 hardening fixture (neg-25-evidence-span-too-large). neg-23-source-file-unregistered was
+// REMOVED 2026-09-24: it staged SOURCE_FILE_UNREGISTERED, a gate that rejected any inputs/
 // path this repo had not itself shipped and registered — which broke the documented workflow of
 // dropping a reader's own transcript into inputs/ and verifying it. See checker/verify-traces.mjs's
 // step "2c" comment and fixtures/make-negatives.mjs for the full removal rationale.
@@ -292,7 +292,7 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
 
 console.log('\n── the shipped cards cite registered, hash-matching inputs ────────────────────');
 {
-  // Moved here from verify-traces.mjs (FIX-1, 2026-09-24). verify-traces.mjs no longer rejects a card
+  // Moved here from verify-traces.mjs on 2026-09-24. verify-traces.mjs no longer rejects a card
   // just for citing an inputs/ path this repo did not itself register — the whole point of the tool is
   // that a reader's own, unregistered transcript must be able to verify. But this repo's own claim is
   // narrower and still real: the FOUR cards it SHIPS cite inputs it actually registered and audited in

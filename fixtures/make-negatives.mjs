@@ -368,7 +368,7 @@ const NEGATIVES = [
       c.source.file = '../../../../../../../etc/escape-probe-does-not-exist.txt';
     },
   },
-  // neg-23-source-file-unregistered REMOVED (FIX-1, 2026-09-24). It staged source.file pointing at
+  // neg-23-source-file-unregistered REMOVED 2026-09-24. It staged source.file pointing at
   // `inputs/not-a-real-input.txt` — a file that does not exist — to exercise SOURCE_FILE_UNREGISTERED,
   // a gate that rejected any inputs/ path not listed in inputs/sha256sums.txt. That gate is gone: it
   // broke this repo's headline workflow (a reader dropping their own, genuinely hash-matching
@@ -458,7 +458,7 @@ const NEGATIVES = [
     },
   },
 
-  // ── FIX-1: the whole-file speakers[].evidence attack a second adversarial reviewer landed ────────
+  // ── the whole-file speakers[].evidence attack a second adversarial reviewer landed (2026-09-24) ──
   // against the hardened verifier. Recorded here after being reproduced live against the real
   // verifier (2026-09-24, pre-fix): a card asserting Dexter — the tool, per every other shipped card —
   // is the session's ONLY speaker, with claims/definitions/numbers/entities/steps/unmapped all "not in
