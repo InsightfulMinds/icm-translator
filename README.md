@@ -11,8 +11,8 @@ it was cut from. A field with nothing behind it says `not in source`. Input that
 listed under `unmapped` with a reason, so the card accounts for the whole file.
 
 No model runs at conversion time. `checker/convert.mjs` is a plain script: every quoted value on a
-card is cut out of the input, and the only other strings it writes are the fixed labels the schema
-names. The same folder also works as a Claude project (the brief this was built for asks
+card is cut out of the input, and the only other strings it writes are fixed schema labels and
+source metadata. The same folder also works as a Claude project (the brief this was built for asks
 for that), and the same checker verifies a card either way, because it cannot tell who wrote it.
 
 ![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg)
@@ -23,10 +23,18 @@ a card could still misrepresent the source while passing those checks are under 
 
 ```bash
 git clone https://github.com/InsightfulMinds/icm-translator && cd icm-translator
-node checker/convert.mjs        # 4 shipped inputs -> 4 cards
-node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
-node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 141 assertions across 26 staged inventions     (exit 0 / 1)
+
+# 4 shipped inputs -> 4 cards
+node checker/convert.mjs
+
+# re-read the inputs, byte-check every span (exit 0 / 1)
+node checker/verify-traces.mjs
+
+# field-by-field diff across the 4 cards (exit 0 / 1)
+node checker/shape-diff.mjs
+
+# 145 assertions across 26 staged inventions (exit 0 / 1)
+node checker/selftest.mjs
 ```
 
 No dependencies, no install, no network. Node 22+.
@@ -65,7 +73,8 @@ v22.22.1
 ```
 
 Save your transcript as a plain UTF-8 `.txt` file inside `inputs/`. The name does not matter, only
-that it lives there. The run below used a 256-byte file saved as `inputs/quickstart-demo.txt`. That
+that it lives there. The run below used a 256-byte file (no trailing newline) saved as
+`inputs/quickstart-demo.txt`. That
 file is not shipped, so substitute your own filename. Its contents were:
 
 ```
@@ -261,8 +270,8 @@ everything would pass a weaker test.
 
 ![A grid of identical blank cards on a dark surface, each with exactly one small field glowing amber where it was tampered with, and a magnifying lens resting over one of them](docs/staged-inventions.jpg)
 
-*Each fixture is the clean control card with one field tampered. The selftest checks that each one
-trips exactly the alarms it is expected to and no other.*
+*Illustration, not a count. Each of the 26 fixtures is the clean control card plus one scripted
+mutation; the selftest checks that each one trips exactly the alarms it expects and no other.*
 
 The six fixtures that stage pure invention (a date nobody said, a next step nobody
 said, a name corrected to its usual spelling, a number drifted one digit, a span moved to a
@@ -309,7 +318,10 @@ second review pass found two more holes, a duplicate key hidden behind a `title`
 listed more than once at the same span, both closed in `7c84833` with fixtures `neg-26` and `neg-27`.
 On Friday a third review pointed out that the selftest still could not have caught the `inputs/`
 regression, so it now writes a temporary transcript under `inputs/`, converts it, verifies it, and
-checks that the no-argument run stays green with that card present. The count stands at 141.
+checks that the no-argument run stays green with that card present. The same review found the
+converter cutting `1.2M` down to the number `1`, byte-exact and wrong, and `$50K` down to `$50`,
+which the verifier then rejected. Fixed the same day: a suffixed figure now stays in its claim, and
+`fixtures/e2e-03-suffixed-figures.txt` pins the extracted figures. The count stands at 145.
 
 You can run the first attack yourself. It exits 1 now, and the unmodified card still exits 0, which
 is what shows the rejection is real rather than a verifier that fails everything:
@@ -333,9 +345,11 @@ Extraction limits, all found by the fourth shipped input (evidence in
    whether or not one was meant.
 4. Numbers must be digits. A spelled-out figure ("forty-two") lands in a claim, not `numbers[]`.
 5. Number spans can include a trailing comma. It verifies correctly, one byte wider than the figure.
+6. A figure with a letter suffix (`1.2M`, `$50K`, `2.5kg`) is not extracted as a number. It stays in
+   its claim.
 
-Gaps in the verifier itself, each with a command that reproduces it in
-[the walkthrough](docs/WALKTHROUGH.md#limits-stated-plainly):
+Gaps in the verifier itself, each with a command in
+[the walkthrough](docs/WALKTHROUGH.md#limits-stated-plainly) that reproduces it and exits 0:
 
 - A role quote that is merely near an entity's name passes, whether or not it is about that entity.
   Proximity is a heuristic, not a proof of relatedness.
@@ -344,10 +358,14 @@ Gaps in the verifier itself, each with a command that reproduces it in
   of a sentence that goes on to dispute that number is a byte-perfect, in-range quote. Exit 0.
 - A real claim can be moved into `unmapped[]` under a false `reason`, and coverage is identical to an
   honest declaration. Exit 0.
-- `source.duration_seconds` comes from `inputs/meta.json`, sibling metadata about the recording, and
-  no shipped command corroborates it against anything.
+- A single `claims[]` entry can span the whole input, with every other field `not in source` and
+  coverage at 100%. The omission check asks whether every byte is under some span, not whether the
+  card was cut into usable pieces. Only the `evidence` span is bounded. Exit 0.
 
 Other facts worth knowing before you rely on it:
+
+- `source.duration_seconds` comes from `inputs/meta.json`, sibling metadata about the recording, and
+  no shipped command corroborates it against anything.
 
 - It does not summarise. Every card is larger than its transcript, because a card copies content
   verbatim and adds a citation to each piece.

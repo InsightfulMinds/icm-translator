@@ -52,7 +52,7 @@ the page is about.
 node checker/convert.mjs        # 4 shipped inputs -> 4 cards
 node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
 node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 141 assertions across 26 staged inventions     (exit 0 / 1)
+node checker/selftest.mjs       # 145 assertions across 26 staged inventions     (exit 0 / 1)
 ```
 
 No dependencies, no install, no network. Node 22+. Everything below was produced by those commands.
@@ -147,7 +147,7 @@ Add these six, and nothing else:
 identity.md                             what it converts, from what, to what
 rules.md                                the mapping, the gap rule, the never-add list
 examples.md                             worked input/output pairs
-reference/schema/lesson-card.v1.json    THE CONTRACT — the output schema
+reference/schema/lesson-card.v1.json    THE CONTRACT: the output schema
 reference/field-definitions.md          what each field means
 reference/format-spec.md                the format the output must match
 ```
@@ -472,12 +472,10 @@ import { fileURLToPath } from 'node:url';
 import { validate as validateSchema } from './schema-validate.mjs';
 ```
 
-![Diagram showing convert.mjs and verify-traces.mjs as two separate boxes with no arrow between them, each importing only Node built-ins and neither importing the other, with card.json flowing between them as data only; only verify-traces.mjs reads the schema file at runtime, while convert.mjs hardcodes its fields](verifier-independence.svg)
+![Diagram showing convert.mjs and verify-traces.mjs as two separate boxes with no arrow between them: convert.mjs imports only Node built-ins, verify-traces.mjs imports Node built-ins plus its own schema-validate.mjs, neither imports the other, and card.json flows between them as data only; verify-traces.mjs and shape-diff.mjs read the schema file at runtime, while convert.mjs hardcodes its fields](verifier-independence.svg)
 
 *The two scripts share no code, only the written schema in `reference/` and the `card.json` file
 that passes between them as data. Neither script's source ever appears in the other's import list.*
-(The diagram predates `schema-validate.mjs`: `verify-traces.mjs` now also imports that one local
-file, described below. `convert.mjs` still imports nothing but Node builtins and never imports it.)
 
 Four Node builtins, plus one same-repo file that `convert.mjs` never imports: `schema-validate.mjs`,
 a generic JSON Schema engine with no knowledge of lesson cards. No shared parser, no shared span
@@ -858,7 +856,7 @@ watched them fire:
   item key removed) and requires the shape test to reject each, having first confirmed that two
   identical cards pass it
 
-A gate nobody has seen fail is not a gate. The full run is 141 assertions.
+A gate nobody has seen fail is not a gate. The full run is 145 assertions.
 
 ---
 
@@ -895,15 +893,15 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 exit=0
 
 $ node checker/selftest.mjs ; echo "exit=$?"
-...141 individual "pass" lines in nine groups, listed below...
-141 passed, 0 failed.
+...145 individual "pass" lines in nine groups, listed below...
+145 passed, 0 failed.
 exit=0
 ```
 
 Those last two are the only outputs elided on this page, and both are elided to their summary line
 only. Run them yourself and you get the per-line detail.
 
-`selftest.mjs`'s 141 assertions are grouped nine ways. The group headers below name what each group
+`selftest.mjs`'s 145 assertions are grouped nine ways. The group headers below name what each group
 checks, reproduced verbatim from a real run:
 
 ```
@@ -921,8 +919,9 @@ checks, reproduced verbatim from a real run:
 The count moved from 36 to 37 when the fourth input was added, then to 117 (commit `cf2f83b`) as
 schema validation, the relationship checks, eighteen more negative fixtures and a two-transcript
 unseen-input round trip were added, to 129 (`410d01a`) with the evidence-span bound and the
-own-transcript fix, to 138 (`7c84833`) with the two duplicate gates, and to 141 with the round trip
-for a transcript dropped under `inputs/`. Most groups above iterate a
+own-transcript fix, to 138 (`7c84833`) with the two duplicate gates, to 141 with the round trip
+for a transcript dropped under `inputs/`, and to 145 with the suffixed-figure regression test
+(`fixtures/e2e-03-suffixed-figures.txt`). Most groups above iterate a
 directory (`fixtures/neg-*`, `cards/`) rather than a hardcoded list, so a new fixture or a new card
 adds assertions rather than relaxing existing ones. No check was weakened, edited or skipped to
 accommodate any of it.
@@ -1016,8 +1015,12 @@ not repeated here:
    whether or not one was meant.
 4. Numbers must be digits: a spelled-out figure ("forty-two") lands in a claim, not `numbers[]`.
 5. Number spans can include a trailing comma; verifies correctly, one byte wider than the figure.
+6. A figure with a letter suffix (`1.2M`, `$50K`, `2.5kg`, `4.5x`) is not extracted as a number; it
+   stays inside its claim. Until 2026-09-25 the converter cut such a figure at its decimal point and
+   shipped `1` for `1.2M`, byte-exact and wrong; a third review caught it, and
+   `fixtures/e2e-03-suffixed-figures.txt` now pins the extracted figures in the selftest.
 
-Past those five:
+Past those six:
 
 - **`definitions[]` fires on two syntactic patterns.** A definition phrased any other way is not
   caught and its sentence becomes a claim.
@@ -1044,6 +1047,19 @@ check, not about how blunt the extraction is:
   weekday becomes a person whose role is a clause about a renewal email. See
   `reference/field-definitions.md`, "What the verifier cannot fully enforce," for the general limit
   this is one instance of.
+  Reproduce it (`kind: "person"` is a legal enum value, and the role span is a real, in-range quote
+  five bytes after the name):
+  ```bash
+  node -e '
+  const fs=require("fs");
+  const buf=fs.readFileSync("inputs/04-pricing-objection.txt");
+  const c=JSON.parse(fs.readFileSync("cards/04-pricing-objection.card.json"));
+  c.entities[0].kind="person";
+  c.entities[0].role={text:buf.slice(905,930).toString(),span:{start:905,end:930}};
+  process.stdout.write(JSON.stringify(c));
+  ' | node checker/verify-traces.mjs /dev/stdin
+  ```
+  Real output: `TRACES VERIFIED — /dev/stdin. 0 problems.`, exit 0.
 - **A claim truncated at a clean boundary can assert the opposite of what the input says, and every
   check passes.** Nothing in this repo checks that a `claims[]` span captured the whole clause a
   negation applies to, only that the bytes it does cite are real and in range. On the shipped
@@ -1093,6 +1109,25 @@ check, not about how blunt the extraction is:
   Real output: `TRACES VERIFIED — /dev/stdin. 0 problems.`, exit 0, coverage byte-identical to the
   original card. This is coverage-identical laundering, not omission, and nothing in this repo
   distinguishes it from a truthful declaration.
+- **A single `claims[]` entry can span the entire input, and the card verifies.** Every other
+  field can then be `not in source`, coverage reads 100%, and nothing fires: the omission check asks
+  whether every byte sits under some span, not whether the card broke the input into pieces a reader
+  could use. The `speakers[].evidence` span is bounded (`EVIDENCE_SPAN_TOO_LARGE`, fixture
+  `neg-25`); `claims[]`, `title` and the other quote fields are not. Reproduce:
+  ```bash
+  node -e '
+  const fs=require("fs");
+  const buf=fs.readFileSync("inputs/04-pricing-objection.txt");
+  const c=JSON.parse(fs.readFileSync("cards/04-pricing-objection.card.json"));
+  c.claims=[{text:buf.toString(),span:{start:0,end:buf.length}}];
+  for (const k of ["speakers","numbers","entities","steps","unmapped"]) c[k]="not in source";
+  c.coverage.covered_bytes=buf.length; c.coverage.pct=100;
+  process.stdout.write(JSON.stringify(c));
+  ' | node checker/verify-traces.mjs /dev/stdin
+  ```
+  Real output: `TRACES VERIFIED — /dev/stdin. 0 problems.`, exit 0. A bound on every quote field,
+  calibrated against the shipped cards the way the evidence bound was, is the obvious fix. It is not
+  built.
 
 The honest summary: this translator's strength is that it cannot invent, and its weakness is that
 extraction that cannot invent is also blunt. Given the brief, *one invented fact and the entry is
@@ -1104,13 +1139,13 @@ out*, that is the trade to make.
 identity.md    what it converts, from what, to what
 rules.md       the mapping: which input parts feed which fields, what to do with a gap, what never to add
 examples.md    six worked examples, every span copied from a real card
-reference/     THE CONTRACT — schema/lesson-card.v1.json, field-definitions.md, format-spec.md
+reference/     THE CONTRACT: schema/lesson-card.v1.json, field-definitions.md, format-spec.md
 README.md      this file
 checker/       convert.mjs · verify-traces.mjs · schema-validate.mjs · shape-diff.mjs · selftest.mjs
-inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + PROVENANCE.md
-fixtures/      clean control + 26 staged inventions + 2 unseen-input e2e transcripts + the generator
+inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + meta.json + PROVENANCE.md
+fixtures/      clean control + 26 staged inventions + their transcript + 3 unseen-input e2e transcripts + the generator
 cards/         the 4 outputs
-audits/        generated by shape-diff.mjs, not committed — your run writes it
+audits/        generated by shape-diff.mjs, not committed; your run writes it
 ```
 
 `reference/` holds the contract because a schema that is not written down somewhere a reader can

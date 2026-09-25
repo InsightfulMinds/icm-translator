@@ -2,7 +2,7 @@
 <rect x="0" y="0" width="1000" height="420" fill="#1b1d21"/>
 
 <text x="30" y="30" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#d6d9de" font-weight="bold">A span is a byte offset into a real file</text>
-<text x="30" y="50" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#8b9098">inputs/04-pricing-objection.txt &#8212; 1441 bytes total &#8212; showing bytes [0,50)</text>
+<text x="30" y="50" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#8b9098">inputs/04-pricing-objection.txt, 1441 bytes total, showing bytes [0,50)</text>
 
 <!-- outer highlight: evidence run [23,31) -->
 <rect x="427" y="88" width="144" height="52" rx="4" fill="#e8a33d" fill-opacity="0.10" stroke="#e8a33d" stroke-width="2"/>
@@ -145,16 +145,16 @@
 <text x="106" y="259" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">speakers[0].evidence</text>
 <text x="106" y="285" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#e8a33d" font-weight="bold">text: "I'm Dana"</text>
 <text x="106" y="309" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#d6d9de">span: { start: 23, end: 31 }</text>
-<text x="106" y="329" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">outer run &#8212; wraps the name</text>
+<text x="106" y="329" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">outer run, wraps the name</text>
 
 <!-- name box -->
 <rect x="580" y="235" width="280" height="108" rx="6" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
 <text x="596" y="259" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">speakers[0].name</text>
 <text x="596" y="285" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#e8a33d" font-weight="bold">text: "Dana"</text>
 <text x="596" y="309" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#d6d9de">span: { start: 27, end: 31 }</text>
-<text x="596" y="329" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">inner run &#8212; nested, shares end=31</text>
+<text x="596" y="329" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098">inner run, nested, shares end=31</text>
 
 <!-- caption -->
 <rect x="30" y="368" width="940" height="34" rx="4" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
-<text x="500" y="389" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#5fb87a" text-anchor="middle">Half-open convention: [start, end) &#8212; the byte AT index 31 is not included in either run. Both runs end there; neither owns it.</text>
+<text x="500" y="389" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#5fb87a" text-anchor="middle">Half-open convention: [start, end), the byte AT index 31 is not included in either run. Both runs end there; neither owns it.</text>
 </svg>
