@@ -13,10 +13,10 @@ reading a byte of it, and it was removed on 2026-09-24 (see the README, "What br
 shipped"). The number stays retired so the history of that mistake is visible rather than renumbered
 away.
 
-## `e2e-01-sensor-calibration.txt`, `e2e-02-github-sync.txt`: SYNTHETIC, unseen-input round trip
+## `e2e-01-sensor-calibration.txt`, `e2e-02-github-sync.txt`, `e2e-03-suffixed-figures.txt`: SYNTHETIC, unseen-input round trip
 
-**These are synthetic test transcripts, written for this repo's hardening pass (2026-09-24).
-There is no recording behind either one. Nobody said these words. They are not real inputs and
+**These are synthetic test transcripts, written for this repo's hardening passes (2026-09-24 and
+2026-09-25). There is no recording behind any of them. Nobody said these words. They are not real inputs and
 must never be confused with the four real, shipped transcripts in `inputs/`.**
 
 They exist because the existing selftest mostly checks prepared artifacts (the control card, the
@@ -40,6 +40,11 @@ comments, so the assertion is not just "the converter didn't crash":
   tests that per-sentence segmentation and step ordering both still work correctly when the same
   words occur twice, in forward order
 - at least one plain number, with and without a stated unit
+- (`e2e-03` only) figures glued to a letter suffix (`1.2M`, `$50K`, `$3B`, `2.5kg`, `4.5x`, `1.5hrs`)
+  next to plain ones (`$12 a month`, `45%`, `1,441`, `29`). The selftest asserts the extracted
+  `numbers[]` is exactly the plain four and that no value stops right before a letter or a decimal
+  digit. Until 2026-09-25 the converter shipped `1` for `1.2M` and `$50` for `$50K`; the old code
+  fails three of these assertions.
 
 `checker/convert.mjs` hardcodes its output path to `cards/<stem>.card.json`. There is no
 env/argument override for the output directory, only for the input path(s) (extra CLI arguments).

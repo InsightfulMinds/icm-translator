@@ -267,7 +267,7 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
   // is read from there and then deleted again in `finally`, leaving cards/ exactly as it was; this
   // fixture area does not own cards/ and does not ship a permanent card for synthetic input.
   const CONVERTER = join(ROOT, 'checker/convert.mjs');
-  const E2E_INPUTS = ['fixtures/e2e-01-sensor-calibration.txt', 'fixtures/e2e-02-github-sync.txt'];
+  const E2E_INPUTS = ['fixtures/e2e-01-sensor-calibration.txt', 'fixtures/e2e-02-github-sync.txt', 'fixtures/e2e-03-suffixed-figures.txt'];
   for (const inputRel of E2E_INPUTS) {
     const inputPath = join(ROOT, inputRel);
     const cardPath = join(ROOT, 'cards', `${basename(inputRel, '.txt')}.card.json`);
@@ -284,6 +284,34 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
       const r = run(cardPath);
       if (r.code !== 0) fail(`${inputRel}: verify-traces.mjs exits 0`, `exited ${r.code} with [${r.codes.join(', ')}]`);
       else pass(`${inputRel}: verify-traces.mjs exits 0`, 'real converter, real verifier, unseen input');
+    } finally {
+      rmSync(cardPath, { force: true });
+    }
+  }
+
+  // e2e-03 exists for one regression: until 2026-09-25 the converter cut a figure with a letter
+  // suffix at its decimal point, so "1.2M" shipped as the number "1" (byte-exact, and wrong) and
+  // "$50K" shipped as "$50", which the verifier then rejected on a word boundary. The round trip
+  // above only asserts exit codes, and "1" verifies, so this block pins the extracted figures
+  // themselves: exactly the plain figures, none of the suffixed ones, and no value that stops right
+  // before a letter or a decimal digit in the input.
+  {
+    const inputRel = 'fixtures/e2e-03-suffixed-figures.txt';
+    const inputPath = join(ROOT, inputRel);
+    const cardPath = join(ROOT, 'cards', 'e2e-03-suffixed-figures.card.json');
+    try {
+      const conv = spawnSync(process.execPath, [CONVERTER, inputPath], { encoding: 'utf8' });
+      const card = conv.status === 0 && existsSync(cardPath) ? JSON.parse(readFileSync(cardPath, 'utf8')) : null;
+      const got = card && Array.isArray(card.numbers) ? card.numbers.map((n) => n.value.text) : [];
+      const want = ['$12', '45%', '1,441', '29'];
+      if (JSON.stringify(got) === JSON.stringify(want)) pass(`${inputRel}: numbers[] is exactly ${JSON.stringify(want)}`, '1.2M, $50K, $3B, 2.5kg, 4.5x, 1.5hrs all stay in their claims');
+      else fail(`${inputRel}: numbers[] is exactly ${JSON.stringify(want)}`, `got ${JSON.stringify(got)}`);
+      const input = readFileSync(inputPath, 'utf8');
+      const truncated = card && Array.isArray(card.numbers)
+        ? card.numbers.filter((n) => /^(?:\w|\.\d)/.test(input.slice(n.value.span.end, n.value.span.end + 2)))
+        : [];
+      if (truncated.length === 0) pass(`${inputRel}: no numbers[] value stops right before a letter or a decimal digit`);
+      else fail(`${inputRel}: no numbers[] value stops right before a letter or a decimal digit`, truncated.map((n) => JSON.stringify(n.value)).join(', '));
     } finally {
       rmSync(cardPath, { force: true });
     }

@@ -192,7 +192,13 @@ function convert(inputRel) {
     }
 
     // 5 · numbers — every figure, with the unit only if the input stated one right after it.
-    const nre = /\$\s?\d[\d,]*(?:\.\d+)?|\b\d[\d,]*(?:\.\d+)?\s?%|\b\d[\d,]*(?:\.\d+)?\b/g;
+    //     A figure glued to a letter suffix ("1.2M", "$50K", "2.5kg", "4.5x") is NOT extracted: it
+    //     stays inside its claim. Until 2026-09-25 the pattern below cut such a figure at the decimal
+    //     point and shipped "1" for "1.2M" (byte-exact, and wrong), or "$50" for "$50K" (which then
+    //     failed the verifier's word-boundary check and poisoned the no-argument run). The two
+    //     negative lookaheads refuse a match that ends right before a word character or before
+    //     ".<digit>", so the whole figure is either taken as the speaker said it or left alone.
+    const nre = /\$\s?\d[\d,]*(?:\.\d+)?(?!\w|\.\d)|\b\d[\d,]*(?:\.\d+)?\s?%|\b\d[\d,]*(?:\.\d+)?\b(?!\.\d)/g;
     let nm;
     while ((nm = nre.exec(s.text)) !== null) {
       const vs = s.cs + nm.index, ve = vs + nm[0].length;

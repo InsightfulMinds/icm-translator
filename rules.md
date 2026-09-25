@@ -128,7 +128,9 @@ something true.
 **numbers**, every figure: `$1,200`, `45%`, `529`. The `value` is verbatim **including** currency
 symbol and separators; `$5,000` is not `5000`. Then look at what immediately follows for a unit
 (`a month`, `per year`, `dollars`, `percent`, `people`, `members`, `minutes`) and if one is there,
-span it. If not, `unit` is `not in source`. Never supply a unit that felt implied.
+span it. If not, `unit` is `not in source`. Never supply a unit that felt implied. A figure glued
+to a letter suffix (`1.2M`, `$50K`, `2.5kg`, `4.5x`) is not a number entry at all: it stays inside
+its claim, because cutting it at the decimal point would ship a figure the speaker never said.
 
 **The verifier enforces adjacency, not just a byte match:** when `unit` is present, it must start no
 more than 5 bytes after `value` ends, with nothing but whitespace between them

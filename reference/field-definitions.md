@@ -120,8 +120,10 @@ input (true on its own, but about something else) no longer passes just because 
 Every figure, its unit, its span.
 
 `value` is verbatim **including** currency symbols, thousands separators and the spelling as it
-appeared: `$5,000` is not `5000` and not `5,000 dollars`. `unit` is itself a span-backed quote, or
-`not in source`. Units are the easiest place to smuggle an invention, because "per month" feels
+appeared: `$5,000` is not `5000` and not `5,000 dollars`. A figure glued to a letter suffix
+(`1.2M`, `$50K`, `2.5kg`) is not extracted into `numbers[]` at all and stays inside its claim,
+because any cut short of the suffix would ship a figure the speaker never said. `unit` is itself a
+span-backed quote, or `not in source`. Units are the easiest place to smuggle an invention, because "per month" feels
 like formatting rather than a claim.
 
 **The verifier enforces adjacency, not just a byte match:** when `unit` is present, `unit.span` must
