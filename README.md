@@ -7,12 +7,14 @@ input it was cut from, and anything the schema could not hold is named instead o
 **The one property worth checking:** nothing in an output exists that was not in the input, and the
 repo ships the tool that proves it.
 
-![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg) That is mechanically enforced for every span-backed value the
+That is mechanically enforced for every span-backed value the
 schema can hold — schema validation, byte-identical text, word-boundary, containment, adjacency and
 coverage checks all run before a card ships, and each is a command you can run. It is not yet
 enforced against every way a card *file* could still misrepresent what those checks see: a short list
 of known, unfixed gaps is named in one place rather than left for a reader to find —
 [Limits, stated plainly](#limits-stated-plainly).
+
+![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg)
 
 ### The two words this page leans on, defined before you need them
 
@@ -43,7 +45,7 @@ the page is about.
 node checker/convert.mjs        # 4 shipped inputs -> 4 cards
 node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
 node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 89 assertions across 18 staged inventions      (exit 0 / 1)
+node checker/selftest.mjs       # 129 assertions across 24 staged inventions     (exit 0 / 1)
 ```
 
 No dependencies, no install, no network. Node 22+. Everything below was produced by those commands.
@@ -61,10 +63,11 @@ v22.22.1
 ```
 
 Save your own transcript as a plain UTF-8 `.txt` file inside `inputs/` — the name doesn't matter,
-only that it exists there. Here's a 256-byte one used for this exact run:
+only that it exists there. The run below used a 256-byte file saved as `inputs/quickstart-demo.txt`.
+**That file is not shipped in this repo**, so substitute your own filename in the commands. Its
+contents were:
 
-```bash
-$ cat inputs/quickstart-demo.txt
+```
 Hi, I'm Priya and this is a quick walkthrough of the export tool. First, open the settings menu.
 Next, click Export CSV. Then enter your workspace name. It costs $12 a month for the pro plan. One
 customer raised a concern about the price during onboarding.
@@ -120,7 +123,7 @@ on trust: each row ends in a command you can run yourself.
 | the question | the answer | settle it yourself |
 |---|---|---|
 | **Does the output shape hold across different inputs?** | Yes. Four inputs — 1,441 to 7,573 bytes, two transcription pipelines, one hand-written argument, one file with no trailing newline — produce four cards with an identical field list in an identical order, matching the contract's own `fieldOrder`. | `node checker/shape-diff.mjs` → **exit 0** · [detail](#1--the-output-shape-holds-across-different-inputs) |
-| **Does every fact in the output trace to the input?** | Yes for every span-backed value — checked, not asserted. Every such value is a verbatim quote plus the byte span it was cut from; an independent verifier validates the full JSON Schema, then re-reads the input and re-slices every span. Eighteen staged inventions are each proven caught, six of them walked through in detail below. One field (`duration_seconds`) is sourced metadata rather than a checked fact, and a short list of known verification gaps is named in [Limits, stated plainly](#limits-stated-plainly). | `node checker/verify-traces.mjs` → **exit 0** · [detail](#3--every-fact-traces-to-the-input) |
+| **Does every fact in the output trace to the input?** | Yes for every span-backed value — checked, not asserted. Every such value is a verbatim quote plus the byte span it was cut from; an independent verifier validates the full JSON Schema, then re-reads the input and re-slices every span. Twenty-four staged inventions are each proven caught, six of them walked through in detail below. One field (`duration_seconds`) is sourced metadata rather than a checked fact, and a short list of known verification gaps is named in [Limits, stated plainly](#limits-stated-plainly). | `node checker/verify-traces.mjs` → **exit 0** · [detail](#3--every-fact-traces-to-the-input) |
 | **Is the contract written down in `reference/` where a reader can check it?** | Yes. `reference/schema/lesson-card.v1.json` is a JSON Schema with every field, the absent-marker rule and the span definition. `field-definitions.md` says what each field means; `format-spec.md` fixes the format. `verify-traces.mjs` validates a card against the full schema before any trace check runs; it and `shape-diff.mjs` also read `fieldOrder` from that schema file at runtime rather than hardcoding it. `convert.mjs` does not read the schema (below). | open [`reference/`](reference/) · [detail](#2--the-contract-is-written-down-in-reference) |
 | **README quality — can a stranger figure this out?** | Four commands, no install, no network, no keys, no arguments. Every claim on this page is printed next to the command that produces it, so you can stop reading at any point and check what you have read so far. | run the four commands above |
 
@@ -457,7 +460,7 @@ command to confirm rather than something to believe:
 $ grep -E "^\s*import" checker/verify-traces.mjs
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate as validateSchema } from './schema-validate.mjs';
 ```
@@ -513,10 +516,14 @@ artifact, not on the goodwill of the thing that wrote it.
     out of the card being judged. See `reference/field-definitions.md`, the `unmapped[]` section, for
     what this does and does not verify about a declared entry's stated reason
 
-Check 11 is what makes the brief's CRM (customer-relationship-management) example — *"a CRM note that
-silently omits the objection the prospect raised is worse than useless"* — a mechanical failure
-rather than a promise, and it closes the gap where a card could once declare its own, looser
-threshold. Check 5 is what makes a citation a location rather than a string match — see fixture 5
+Check 11 stops a card from leaving real content with **no span anywhere on it** — the failure mode
+the brief's CRM (customer-relationship-management) example names, *"a CRM note that silently omits
+the objection the prospect raised is worse than useless."* It is a narrower guarantee than that
+sentence implies, and not the stronger "mechanical failure rather than a promise" claim an earlier
+version of this page made: a claim moved into `unmapped[]` under a false `reason` is byte-identical
+in coverage to the same claim declared honestly, and check 11 cannot tell the two apart — see
+[Limits, stated plainly](#limits-stated-plainly). Check 5 is what makes a citation a location rather
+than a string match — see fixture 5
 below. Checks 6–8 close the bypass where a quote was real and individually verifiable but had nothing
 to do with the field it was placed in — a swapped-in name, an unrelated unit, a definition copied from
 elsewhere in the input.
@@ -528,19 +535,21 @@ mechanically verify semantic relatedness between two spans, only their distance 
 `reference/field-definitions.md`, "What the verifier cannot fully enforce," for the full statement of
 this limit.
 
-## 4 · Eighteen staged inventions, six walked through in detail below
+## 4 · Twenty-four staged inventions, six walked through in detail below
 
-`fixtures/` holds a clean control card and eighteen negatives. Each negative is **the control plus
+`fixtures/` holds a clean control card and twenty-four negatives. Each negative is **the control plus
 exactly one mutation**, generated by `fixtures/make-negatives.mjs` rather than hand-written, so
 "only one thing changed" is a property of the build and not a promise in a comment. Each fixture
 carries an `EXPECT.json` naming the invention class it stages and the error code it must fire. The
 first six stage pure invention (a fact with no support anywhere in the input) and are walked through
-below one at a time; the remaining twelve stage malformed cards (schema violations) and cards that
+below one at a time; the remaining eighteen stage malformed cards (schema violations), cards that
 misuse a real, in-input quote (an unrelated speaker's name, an unassociated unit or definition, a
-role with nothing near it) — the relationship checks in [§3](#3--every-fact-traces-to-the-input)
-exist because of that second group.
+role with nothing near it — the relationship checks in [§3](#3--every-fact-traces-to-the-input) exist
+because of that group), and cards that attack the checker's own machinery (a duplicate key hidden
+behind a `\u` escape, a source path that escapes the repo, a reversed step order, a fabricated
+duration, an oversized `evidence` span, and an aggregate coverage omission).
 
-All eighteen are built from one 386-byte transcript, `fixtures/fixture-transcript.txt`, which is
+All twenty-four are built from one 386-byte transcript, `fixtures/fixture-transcript.txt`, which is
 short enough to print in full:
 
 ```
@@ -828,7 +837,7 @@ watched them fire:
   item key removed) and requires the shape test to reject each, having first confirmed that two
   identical cards pass it
 
-A gate nobody has seen fail is not a gate. The full run is 89 assertions.
+A gate nobody has seen fail is not a gate. The full run is 129 assertions.
 
 ---
 
@@ -865,33 +874,37 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 exit=0
 
 $ node checker/selftest.mjs ; echo "exit=$?"
-...89 individual "pass" lines in seven groups, listed below...
-89 passed, 0 failed.
+...129 individual "pass" lines in nine groups, listed below...
+129 passed, 0 failed.
 exit=0
 ```
 
 Those last two are the only outputs elided on this page, and both are elided to their summary line
 only — run them yourself and you get the per-line detail.
 
-`selftest.mjs`'s 89 assertions are grouped seven ways; the group headers below name what each group
-checks:
+`selftest.mjs`'s 129 assertions are grouped nine ways. The group headers below name what each group
+checks, reproduced verbatim from a real run:
 
 ```
 ── the control must verify clean ──────────────────────────────────────────────
 ── each negative fires on its own gate, and only its own ──────────────────────
 ── each negative is the control plus exactly one mutation ─────────────────────
 ── the hash gate is not dead code ─────────────────────────────────────────────
+── a card named after a registered input is bound to cite it ──────────────────
 ── the shape test still fails on real drift ───────────────────────────────────
 ── the real converter + real verifier round-trip on genuinely unseen input ────
+── the shipped cards cite registered, hash-matching inputs ────────────────────
 ── the shipped cards verify against the shipped inputs ────────────────────────
 ```
 
-The count moved from 36 to 37 when the fourth input was added, and has grown since: twelve more
-negative fixtures (schema violations, and quotes that byte-match but sit in the wrong relationship to
-the field they're placed in) and a two-transcript unseen-input round trip brought it to 89. Most
-groups above iterate a directory (`fixtures/neg-*`, `cards/`) rather than a hardcoded list, so a new
-fixture or a new card adds assertions rather than relaxing existing ones. No check was weakened,
-edited or skipped to accommodate any of it.
+The count moved from 36 to 37 when the fourth input was added, then to 89 as twelve more negative
+fixtures (schema violations, and quotes that byte-match but sit in the wrong relationship to the
+field they're placed in) and a two-transcript unseen-input round trip were added. It has grown again
+since, as later hardening passes closed further gaps and added their own fixtures and checks — most
+recently an oversized-`evidence`-span bypass — bringing the total to 129. Most groups above iterate a
+directory (`fixtures/neg-*`, `cards/`) rather than a hardcoded list, so a new fixture or a new card
+adds assertions rather than relaxing existing ones. No check was weakened, edited or skipped to
+accommodate any of it.
 
 ### Reproducibility: the committed cards regenerate exactly
 
@@ -1010,6 +1023,55 @@ check, not about how blunt the extraction is:
   weekday becomes a person whose role is a clause about a renewal email. See
   `reference/field-definitions.md`, "What the verifier cannot fully enforce," for the general limit
   this is one instance of.
+- **A claim truncated at a clean boundary can assert the opposite of what the input says, and every
+  check passes.** Nothing in this repo checks that a `claims[]` span captured the whole clause a
+  negation applies to — only that the bytes it does cite are real and in range. On the shipped
+  `inputs/04-pricing-objection.txt`, the sentence at `[135,243)` reads *"the pilot recap deck says we
+  onboarded forty-two schools last quarter and I don't think that number is right."* A card citing
+  only `[161,204)` — *"we onboarded forty-two schools last quarter"* — is a byte-perfect, in-range
+  quote asserting the exact figure the speaker disputes. Reproduce it (declaring the two freed side
+  segments in `unmapped[]` so nothing goes uncovered, and recomputing `coverage` to match):
+  ```bash
+  node -e '
+  const fs=require("fs");
+  const buf=fs.readFileSync("inputs/04-pricing-objection.txt");
+  const c=JSON.parse(fs.readFileSync("cards/04-pricing-objection.card.json"));
+  c.claims[2]={text:buf.slice(161,204).toString(),span:{start:161,end:204}};
+  c.unmapped.push(
+    {text:buf.slice(96,161).toString(),span:{start:96,end:161},reason:"below-extraction-threshold"},
+    {text:buf.slice(204,244).toString(),span:{start:204,end:244},reason:"below-extraction-threshold"}
+  );
+  // coverage is unchanged: the freed bytes are still covered, just by unmapped[] instead of claims[]
+  process.stdout.write(JSON.stringify(c));
+  ' | node checker/verify-traces.mjs /dev/stdin
+  ```
+  Real output: `TRACES VERIFIED — /dev/stdin. 0 problems.` — exit 0, `coverage` untouched at 98.06%
+  because the freed bytes move from `claims[]` to `unmapped[]` rather than disappearing. This is not
+  mechanically
+  detectable by a byte checker; the closest partial mitigation would be a `SPAN_SENTENCE_BOUNDARY`
+  check requiring every `claims[]` span to start and end on a sentence boundary (the same boundary
+  `convert.mjs` already emits when it segments a transcript), which would close this specific family.
+  It is not built.
+- **A `claims[]` entry can be moved into `unmapped[]` under a false `reason`, and coverage cannot tell
+  the difference from an honest declaration.** `reason` is checked only for closed-enum membership
+  (see `reference/field-definitions.md`, `unmapped[]`), never against the content. Take shipped card
+  `04-pricing-objection`, remove `claims[11]` — *"I do not agree with that, and I want it on the
+  record that I do not agree,"* the objection [What the fourth input
+  exposed](#what-the-fourth-input-exposed) calls out as surviving — and re-declare that exact span in
+  `unmapped[]` with `reason: "no-field-for-this-content"`, which is false: `claims[]` is exactly the
+  field for it. Reproduce:
+  ```bash
+  node -e '
+  const fs=require("fs");
+  const c=JSON.parse(fs.readFileSync("cards/04-pricing-objection.card.json"));
+  const removed=c.claims.splice(11,1)[0];
+  c.unmapped.push({text:removed.text,span:removed.span,reason:"no-field-for-this-content"});
+  process.stdout.write(JSON.stringify(c));
+  ' | node checker/verify-traces.mjs /dev/stdin
+  ```
+  Real output: `TRACES VERIFIED — /dev/stdin. 0 problems.` — exit 0, coverage byte-identical to the
+  original card. This is coverage-identical laundering, not omission, and nothing in this repo
+  distinguishes it from a truthful declaration.
 
 The honest summary: this translator's strength is that it cannot invent, and its weakness is that
 extraction that cannot invent is also blunt. Given the brief — *one invented fact and the entry is
@@ -1025,7 +1087,7 @@ reference/     THE CONTRACT — schema/lesson-card.v1.json, field-definitions.md
 README.md      this file
 checker/       convert.mjs · verify-traces.mjs · schema-validate.mjs · shape-diff.mjs · selftest.mjs
 inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + PROVENANCE.md
-fixtures/      clean control + 18 staged inventions + 2 unseen-input e2e transcripts + the generator
+fixtures/      clean control + 24 staged inventions + 2 unseen-input e2e transcripts + the generator
 cards/         the 4 outputs
 audits/        generated by shape-diff.mjs, not committed — your run writes it
 ```

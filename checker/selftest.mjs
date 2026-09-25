@@ -52,7 +52,13 @@ console.log('\n── the control must verify clean ─────────�
 
 console.log('\n── each negative fires on its own gate, and only its own ──────────────────────');
 const negDirs = readdirSync(join(ROOT, 'fixtures')).filter((d) => d.startsWith('neg-')).sort();
-const EXPECTED_NEG_COUNT = 24; // 6 original + 12 WP4a (neg-07..neg-18) + 6 WP6a property fixtures (neg-19..neg-24)
+// 6 original + 12 schema/relationship fixtures (neg-07..neg-18) + 5 property fixtures (neg-19, neg-20, neg-21, neg-22,
+// neg-24) + 1 FIX-1 fixture (neg-25-evidence-span-too-large). neg-23-source-file-unregistered was
+// REMOVED 2026-09-24 (FIX-1): it staged SOURCE_FILE_UNREGISTERED, a gate that rejected any inputs/
+// path this repo had not itself shipped and registered — which broke the documented workflow of
+// dropping a reader's own transcript into inputs/ and verifying it. See checker/verify-traces.mjs's
+// step "2c" comment and fixtures/make-negatives.mjs for the full removal rationale.
+const EXPECTED_NEG_COUNT = 24;
 if (negDirs.length !== EXPECTED_NEG_COUNT) fail(`${EXPECTED_NEG_COUNT} negative fixtures present`, `found ${negDirs.length}`);
 else pass(`${EXPECTED_NEG_COUNT} negative fixtures present`);
 
@@ -151,12 +157,12 @@ console.log('\n── the hash gate is not dead code ─────────
   }
 }
 
-console.log('\n── a card named after a registered input is bound to cite it (WP6a AA/AS) ─────');
+console.log('\n── a card named after a registered input is bound to cite it ──────────────────');
 {
   // The AA/AS premortem attack: take a card that is supposed to represent one of the four real,
   // registered transcripts, and repoint its source.file at a different, uncontrolled file while
   // changing nothing else. Staged here with a fully SELF-CONSISTENT swap — same bytes, same hash,
-  // only the path differs — because that is the actual shape that bypassed the pre-WP6a verifier:
+  // only the path differs — because that is the actual shape that bypassed the earlier verifier:
   // a mismatched hash would already have been caught by SHA256_MISMATCH, so it would prove nothing
   // about source.file's identity being unconstrained.
   const tmpDir = join(ROOT, 'fixtures/.tmp-selftest-identity');
@@ -180,7 +186,7 @@ console.log('\n── a card named after a registered input is bound to cite it 
 
     // Disclosed, not hidden: the SAME repointed card, verified under an UNRELATED filename, is not
     // bound by this check and falls through to the general inputs/fixtures rule — which this exact
-    // swap satisfies, so it still verifies. This is the residual gap WP6A-PROPERTIES.md documents:
+    // swap satisfies, so it still verifies. This is a residual, disclosed gap:
     // the identity binding protects a card's own persistent, registered-input-shaped filename; it
     // does not (and structurally cannot, without touching convert.mjs or cards/) bind an arbitrary
     // path to a specific card's claimed identity.
@@ -197,7 +203,7 @@ console.log('\n── a card named after a registered input is bound to cite it 
     const unbound = run(unnamedPath);
     if (unbound.codes.includes('SOURCE_FILE_IDENTITY_MISMATCH'))
       fail('unnamed copy is not identity-bound', 'SOURCE_FILE_IDENTITY_MISMATCH fired for a non-registered filename — the binding is supposed to be name-scoped');
-    else pass('unnamed copy is not identity-bound', 'residual, disclosed gap — see WP6A-PROPERTIES.md');
+    else pass('unnamed copy is not identity-bound', 'residual gap, disclosed in reference/field-definitions.md');
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -281,6 +287,50 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
     } finally {
       rmSync(cardPath, { force: true });
     }
+  }
+}
+
+console.log('\n── the shipped cards cite registered, hash-matching inputs ────────────────────');
+{
+  // Moved here from verify-traces.mjs (FIX-1, 2026-09-24). verify-traces.mjs no longer rejects a card
+  // just for citing an inputs/ path this repo did not itself register — the whole point of the tool is
+  // that a reader's own, unregistered transcript must be able to verify. But this repo's own claim is
+  // narrower and still real: the FOUR cards it SHIPS cite inputs it actually registered and audited in
+  // inputs/sha256sums.txt. That property is checked here, once, directly against the registry file and
+  // the real bytes on disk.
+  //
+  // Deliberately scoped by REGISTERED BASENAME, not "every file currently sitting in cards/": the
+  // documented quick-start workflow this whole fix exists to unbreak has a reader run
+  // `checker/convert.mjs` on their own transcript, which — per convert.mjs's hardcoded output path —
+  // writes straight into cards/<stem>.card.json. If this audit instead scanned the whole directory, a
+  // reader who followed the documented workflow and then happened to run this file would get their own,
+  // perfectly valid card flagged here, reintroducing the exact bug this fix removed one check up. So
+  // this audits only the cards whose name identifies them as one of the four this repo registers and
+  // ships — the same name-to-input binding verify-traces.mjs's SOURCE_FILE_IDENTITY_MISMATCH check
+  // (2d) uses — and says nothing about any other file that happens to be in cards/.
+  const sumsPath = join(ROOT, 'inputs/sha256sums.txt');
+  const registered = new Map(); // basename (no .txt) -> { path, sha256 }
+  if (existsSync(sumsPath)) {
+    for (const line of readFileSync(sumsPath, 'utf8').split('\n')) {
+      const m = /^([0-9a-f]{64})\s+(\S+)/.exec(line.trim());
+      if (m) registered.set(basename(m[2]).replace(/\.txt$/, ''), { path: m[2], sha256: m[1] });
+    }
+  }
+  if (registered.size === 0) fail('inputs/sha256sums.txt lists at least one registered input', 'found none');
+  for (const [name, { path: srcRel, sha256: expectedHash }] of [...registered].sort(([a], [b]) => a.localeCompare(b))) {
+    const cardPath = join(ROOT, 'cards', `${name}.card.json`);
+    if (!existsSync(cardPath)) { fail(`cards/${name}.card.json exists`, `expected a shipped card for registered input ${srcRel}`); continue; }
+    pass(`cards/${name}.card.json exists`);
+    const card = JSON.parse(readFileSync(cardPath, 'utf8'));
+    if (card?.source?.file !== srcRel) {
+      fail(`cards/${name}.card.json cites its registered input`, `source.file is \`${card?.source?.file}\`, expected \`${srcRel}\``);
+      continue;
+    }
+    pass(`cards/${name}.card.json cites its registered input`, srcRel);
+    const realHash = createHash('sha256').update(readFileSync(join(ROOT, srcRel))).digest('hex');
+    if (expectedHash !== realHash)
+      fail(`inputs/sha256sums.txt's hash for ${srcRel} matches the real file`, `registry says ${expectedHash}, actual is ${realHash}`);
+    else pass(`inputs/sha256sums.txt's hash for ${srcRel} matches the real file`);
   }
 }
 

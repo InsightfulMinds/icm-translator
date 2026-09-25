@@ -2191,7 +2191,7 @@ the bytes that ship.
 
 ## Example 4 — the field that is correctly empty
 
-All three cards carry:
+All four shipped cards carry:
 
 ```json
 "title": "not in source"

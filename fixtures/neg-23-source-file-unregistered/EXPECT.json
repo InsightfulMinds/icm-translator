@@ -1,8 +1,0 @@
-{
-  "fixture": "neg-23-source-file-unregistered",
-  "invention_class": "source-file-unregistered",
-  "expect_codes": [
-    "SOURCE_FILE_UNREGISTERED"
-  ],
-  "note": "source.file repointed at an inputs/*.txt path that is not listed in inputs/sha256sums.txt — the shape of a smuggled, unpublished input being cited as if it were one of the four registered transcripts. This one did NOT bypass the pre-fix verifier in a reproducible way (a file that does not exist already failed with SOURCE_MISSING, and this profile does not let a card add a new file under inputs/ to prove the smuggled-and-existing case) — it is disclosed here as additional, real hardening rather than as a sixth closed bypass: inputs/ membership is now checked explicitly instead of being an accident of whether existsSync happens to succeed."
-}

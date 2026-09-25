@@ -93,7 +93,7 @@ const NEGATIVES = [
       'Coverage is restated honestly (335 -> 321 bytes, 83.16%) because vacating [162,176) genuinely uncovers ' +
       'those bytes; leaving the old number would trip the coverage gate instead and the fixture would prove ' +
       'nothing about ordering. 83.16% is also below the lesson-card.v1 profile\'s aggregate coverage floor ' +
-      '(85%, WP6a), so COVERAGE_BELOW_FLOOR fires alongside STEP_ORDER_NOT_INCREASING — both are real, ' +
+      '(85%), so COVERAGE_BELOW_FLOOR fires alongside STEP_ORDER_NOT_INCREASING — both are real, ' +
       'independently true findings about this same mutated card, not a duplicate report of one problem.',
     mutate: (c) => {
       c.steps[1].action.span = { start: 227, end: 241 };
@@ -113,7 +113,7 @@ const NEGATIVES = [
       'its tracks. It still fails, because the verifier recomputes the uncovered regions from the source ' +
       'rather than reading the card\'s own unmapped list, and the resulting 66-byte hole is over the ' +
       'declared 32-byte bar. 70.47% is also well below the lesson-card.v1 profile\'s aggregate coverage ' +
-      'floor (85%, WP6a), so COVERAGE_BELOW_FLOOR fires alongside UNMAPPED_OMISSION — this single dropped ' +
+      'floor (85%), so COVERAGE_BELOW_FLOOR fires alongside UNMAPPED_OMISSION — this single dropped ' +
       'passage is large enough to trip both independent gates at once.',
     mutate: (c) => {
       const before = c.claims.length;
@@ -126,10 +126,10 @@ const NEGATIVES = [
     },
   },
 
-  // ── the twelve bypasses the WP4a adversarial reviewer landed against the hardened verifier ──────
+  // ── the twelve bypasses the adversarial reviewer landed against the hardened verifier ──────
   // Each of these stages an attack that was reported to actually get past an EARLIER version of the
   // gates below. Every expect_codes value here was recorded by running the real verifier against the
-  // generated fixture and reading its actual output — never guessed. See WP4A-FIXTURES.md for the
+  // generated fixture and reading its actual output — never guessed. See the per-fixture EXPECT.json notes for the
   // literal command transcripts.
 
   {
@@ -304,9 +304,9 @@ const NEGATIVES = [
     },
   },
 
-  // ── WP6a: property-level bypasses a second, independent premortem found against the hardened ────
+  // ── property-level bypasses a second, independent premortem found against the hardened ────
   // verifier above. Each of these was reproduced against the real verifier BEFORE the corresponding
-  // fix (recorded here, and in WP6A-PROPERTIES.md, as an actual observed exit-0 bypass) and AFTER
+  // fix (recorded here as an actual observed exit-0 bypass) and AFTER
   // (recorded as the actual observed problem code) — never guessed.
 
   {
@@ -321,7 +321,7 @@ const NEGATIVES = [
       '17-byte cut, well under the 32-byte bar, and it merges with the fixture\'s own pre-existing 1-byte ' +
       'gap before unmapped[1] into one 18-byte run (still under the bar, confirmed by measuring every run ' +
       'the mutated card leaves uncovered: max 18 bytes). Coverage is restated honestly (335 -> 318 bytes, ' +
-      '82.38%). Before the WP6a fix this verified clean (0 problems, exit 0) because nothing checked the ' +
+      '82.38%). Before the property-hardening pass this verified clean (0 problems, exit 0) because nothing checked the ' +
       'AGGREGATE total. After the fix, the recomputed 82.38% is below the lesson-card.v1 profile\'s ' +
       'aggregate coverage floor (85%), so COVERAGE_BELOW_FLOOR fires — a check on the TOTAL, independent ' +
       'of any single run\'s size.',
@@ -339,7 +339,7 @@ const NEGATIVES = [
     note:
       'source.duration_seconds set to a fabricated figure (987654321) the transcript never stated and ' +
       'inputs/meta.json never recorded. The schema\'s oneOf only ever checked the TYPE (number or "not in ' +
-      'source"), never the VALUE, so before the WP6a fix any non-negative number verified clean — a card ' +
+      'source"), never the VALUE, so before the property-hardening pass any non-negative number verified clean — a card ' +
       'could claim any duration for any input. After the fix, verify-traces.mjs re-reads inputs/meta.json ' +
       '(an input artifact, not the converter) and checks the exact value: this fixture\'s source is ' +
       'fixtures/fixture-transcript.txt, which has no entry in inputs/meta.json at all, so the only correct ' +
@@ -355,35 +355,32 @@ const NEGATIVES = [
     expect_codes: ['SOURCE_FILE_ESCAPES_REPO'],
     note:
       'source.file set to a `..`-traversal string that resolves outside the repo entirely. Before the ' +
-      'WP6a fix, source.file was never constrained at all — verified live: a copy of a real shipped ' +
+      'property-hardening pass, source.file was never constrained at all — verified live: a copy of a real shipped ' +
       'transcript placed at an ABSOLUTE path outside the repo (a real reproduction with matching sha256, ' +
       'not staged here) verified with 0 problems, exit 0, because the verifier only ever asked "does this ' +
       'file exist and match the given hash", never "is this file inside the repo the reader was handed". ' +
       'This fixture stages the same shape of attack with a plain, deterministic target so it does not ' +
       'depend on what happens to exist outside the repo on any given machine: the fix rejects the path on ' +
       'sight, before ever calling existsSync on it, so SOURCE_FILE_ESCAPES_REPO fires regardless of ' +
-      'whether anything real sits at the traversal target. See WP6A-PROPERTIES.md for the live ' +
-      'matching-bytes reproduction that actually bypassed the pre-fix verifier.',
+      'whether anything real sits at the traversal target. The live matching-bytes reproduction that ' +
+      'bypassed the pre-fix verifier is described in reference/field-definitions.md.',
     mutate: (c) => {
-      c.source.file = '../../../../../../../etc/wp6a-does-not-exist-probe.txt';
+      c.source.file = '../../../../../../../etc/escape-probe-does-not-exist.txt';
     },
   },
-  {
-    dir: 'neg-23-source-file-unregistered',
-    class: 'source-file-unregistered',
-    expect_codes: ['SOURCE_FILE_UNREGISTERED'],
-    note:
-      'source.file repointed at an inputs/*.txt path that is not listed in inputs/sha256sums.txt — the ' +
-      'shape of a smuggled, unpublished input being cited as if it were one of the four registered ' +
-      'transcripts. This one did NOT bypass the pre-fix verifier in a reproducible way (a file that does ' +
-      'not exist already failed with SOURCE_MISSING, and this profile does not let a card add a new file ' +
-      'under inputs/ to prove the smuggled-and-existing case) — it is disclosed here as additional, real ' +
-      'hardening rather than as a sixth closed bypass: inputs/ membership is now checked explicitly ' +
-      'instead of being an accident of whether existsSync happens to succeed.',
-    mutate: (c) => {
-      c.source.file = 'inputs/not-a-real-input.txt';
-    },
-  },
+  // neg-23-source-file-unregistered REMOVED (FIX-1, 2026-09-24). It staged source.file pointing at
+  // `inputs/not-a-real-input.txt` — a file that does not exist — to exercise SOURCE_FILE_UNREGISTERED,
+  // a gate that rejected any inputs/ path not listed in inputs/sha256sums.txt. That gate is gone: it
+  // broke this repo's headline workflow (a reader dropping their own, genuinely hash-matching
+  // transcript into inputs/ was rejected by filename before a single byte was read), and the fixture's
+  // own EXPECT.json note already admitted the attack it staged never bypassed anything reproducible —
+  // a nonexistent file already failed with SOURCE_MISSING, and this repo cannot add a new real file
+  // under inputs/ from a fixture to prove the smuggled-and-existing case (inputs/ is fixed, shipped
+  // content). Removing the gate turns this fixture's own card back into SOURCE_MISSING, which is a
+  // different fixture's job (none currently needed — SOURCE_MISSING is exercised implicitly any time a
+  // card names a file that is not there). The real property this gate was reaching for — "the cards
+  // this repo SHIPS cite inputs this repo actually registered" — still holds, moved to
+  // checker/selftest.mjs, which audits cards/*.json against inputs/sha256sums.txt directly.
   {
     dir: 'neg-24-reversed-step-order',
     class: 'reversed-step-order',
@@ -400,7 +397,7 @@ const NEGATIVES = [
       '`no-field-for-this-content`) so removing them from steps[] does not also change coverage or trip ' +
       'the omission gates — this fixture isolates the ordering property alone (coverage recomputes to ' +
       '338/386 = 87.56%, comfortably above the aggregate floor; the largest uncovered run is 20 bytes, ' +
-      'under the 32-byte bar). Before the WP6a fix this verified clean, exit 0.',
+      'under the 32-byte bar). Before the property-hardening pass this verified clean, exit 0.',
     mutate: (c) => {
       const oldSteps = c.steps;
       for (const st of oldSteps) c.unmapped.push({ text: st.action.text, span: st.action.span, reason: 'no-field-for-this-content' });
@@ -419,7 +416,7 @@ const NEGATIVES = [
     expect_codes: ['DUPLICATE_KEY'],
     note:
       'A fabricated `"title"` key inserted before the real one, at the SAME object level (root). ' +
-      'JSON.parse silently keeps only the LAST value, so before the WP6a fix the parsed card was byte-for-' +
+      'JSON.parse silently keeps only the LAST value, so before the property-hardening pass the parsed card was byte-for-' +
       'byte identical to the control\'s — the invented sentence is invisible to any check that only looks ' +
       'at the parsed object, even though it sits in the file in plain text. This is the one negative whose ' +
       'mutation is INVISIBLE at the parsed-JSON level by construction (findDuplicateKeys() runs on the raw ' +
@@ -431,6 +428,34 @@ const NEGATIVES = [
       const marker = '"title": "not in source",';
       if (!text.includes(marker)) throw new Error('neg-20: title line not found in control text');
       return text.replace(marker, `"title": "How To Defraud The Board In Four Easy Steps",\n  ${marker}`);
+    },
+  },
+
+  // ── FIX-1: the whole-file speakers[].evidence attack a second adversarial reviewer landed ────────
+  // against the hardened verifier. Recorded here after being reproduced live against the real
+  // verifier (2026-09-24, pre-fix): a card asserting Dexter — the tool, per every other shipped card —
+  // is the session's ONLY speaker, with claims/definitions/numbers/entities/steps/unmapped all "not in
+  // source", verified with 0 problems, exit 0.
+
+  {
+    dir: 'neg-25-evidence-span-too-large',
+    class: 'evidence-span-too-large',
+    expect_codes: ['EVIDENCE_SPAN_TOO_LARGE'],
+    note:
+      'speakers[0].evidence repointed at the ENTIRE input, byte-for-byte — span [0,386), text equal to ' +
+      'the full contents of fixtures/fixture-transcript.txt. This is real, byte-matching, in-range and ' +
+      'trivially contains the name span, so before this fix nothing rejected it: SPEAKER_NAME_NOT_IN_EVIDENCE ' +
+      'cannot fire (any span contains any name once it covers the whole file), and the one span alone marks ' +
+      'every byte of the input covered, so neither UNMAPPED_OMISSION nor COVERAGE_BELOW_FLOOR can fire either ' +
+      '— coverage is restated honestly (335 -> 386 bytes, 100%) because a careless restatement would trip the ' +
+      'coverage-mismatch gate instead and prove nothing about evidence size. Caught only because ' +
+      'EVIDENCE_MAX_PCT_OF_SOURCE bounds evidence to 20% of the input\'s bytes: 386 bytes is 100% of a ' +
+      '386-byte input, an order of magnitude over the bound.',
+    mutate: (c) => {
+      const fullBuf = readFileSync(join(HERE, 'fixture-transcript.txt'));
+      c.speakers[0].evidence = { text: fullBuf.toString('utf8'), span: { start: 0, end: fullBuf.length } };
+      c.coverage.covered_bytes = fullBuf.length;
+      c.coverage.pct = 100;
     },
   },
 ];

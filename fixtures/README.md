@@ -9,7 +9,7 @@ they're driven.
 
 ## `e2e-01-sensor-calibration.txt`, `e2e-02-github-sync.txt` — SYNTHETIC, unseen-input round trip
 
-**These are synthetic test transcripts, written for this repo's WP4a hardening pass (2026-09-24).
+**These are synthetic test transcripts, written for this repo's hardening pass (2026-09-24).
 There is no recording behind either one. Nobody said these words. They are not real inputs and
 must never be confused with the four real, shipped transcripts in `inputs/`.**
 

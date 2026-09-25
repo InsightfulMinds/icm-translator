@@ -93,6 +93,11 @@ phrase.
 
 A capitalised word with no introducing phrase is not a speaker. At most it is an entity.
 
+**The verifier enforces this as containment, not just two independently real quotes.** `name`'s span
+must sit entirely inside `evidence`'s span (`SPEAKER_NAME_NOT_IN_EVIDENCE`). A real name and a real
+introducing phrase that belongs to a *different* speaker do not make a card verify — the name has to
+actually be part of the phrase that names it, not merely correct on its own.
+
 **The name goes out exactly as it appeared.** This is the rule the brief singles out and it is the
 one you will be most tempted to break, because transcription mangles names and correcting one feels
 like diligence. It is not. It is invention, and it is disqualifying. If the transcript says `Sara`,
@@ -106,7 +111,7 @@ Only if the speaker states one: `this video is called "X"`, `titled "X"`. Verbat
 
 A filename is not a title. A video's published title is not a title. The scrape metadata sitting
 next to the transcript is not a title. None of those are the input. In practice this field is
-`not in source` far more often than not, and all three shipped cards have it absent — which is the
+`not in source` far more often than not, and all four shipped cards have it absent — which is the
 field working, not the field failing.
 
 ## 7 · `definitions[]`, `numbers[]`, `entities[]`
@@ -115,10 +120,20 @@ field working, not the field failing.
 `, which is` in the middle, because that is how people actually talk. `term` is the capitalised
 thing; `definition` is the role phrase **as given**, running to the next `.`, `,`, `;` or `:`.
 
+**The verifier enforces proximity, not just a byte match:** `definition` must start no more than 60
+bytes after `term` ends (`DEFINITION_NOT_ASSOCIATED`). A definition that is real, span-backed, and
+byte-correct but copied from somewhere else in the input does not pass just because its bytes match
+something true.
+
 **numbers** — every figure: `$1,200`, `45%`, `529`. The `value` is verbatim **including** currency
 symbol and separators; `$5,000` is not `5000`. Then look at what immediately follows for a unit —
 `a month`, `per year`, `dollars`, `percent`, `people`, `members`, `minutes` — and if one is there,
 span it. If not, `unit` is `not in source`. Never supply a unit that felt implied.
+
+**The verifier enforces adjacency, not just a byte match:** when `unit` is present, it must start no
+more than 5 bytes after `value` ends, with nothing but whitespace between them
+(`UNIT_NOT_ADJACENT`). A unit quoted verbatim from a different sentence's number does not pass just
+because the words are real.
 
 Digits only. Numbers spelled out in words are not extracted; they will fall into a claim instead,
 which is honest, and it is noted as a limitation in the README rather than hidden.
@@ -148,6 +163,13 @@ lookup on the role's own words:
 No role span means `unknown`. The verifier enforces this pairing, so classifying something you could
 not point at is a failure, not a nuance.
 
+**The verifier also enforces that `role` is *near* `name`, not merely present** (`ROLE_NOT_NEAR_NAME`):
+either `name`'s span sits inside `role`'s span (a self-introduction, where the role phrase contains
+the name), or `role` starts no more than 60 bytes after `name` ends (a definition-style statement,
+the same gap as `definitions[]` above). A true, real, span-backed sentence pulled from elsewhere in
+the card does not clear the fence just because it byte-matches something real — it has to actually be
+near the name it is supposed to classify.
+
 ## 9 · `unmapped[]` and `coverage`
 
 `coverage` is the size of the **union** of every span in the card, over the total input bytes.
@@ -158,8 +180,16 @@ Then find the runs of input that no span touches. Any such run at or above
 appear in `unmapped[]`. Runs of pure whitespace and punctuation between two quotes do not count —
 nothing went missing there.
 
-**The verifier recomputes this from the source. It does not read your list and believe it.** So
-there is no benefit to declaring a tidy `unmapped[]` that does not correspond to the actual holes.
+**The verifier recomputes coverage from the source. It does not read `unmapped[]` and trust it —
+it checks whether every run of real content at or above the threshold is touched by *some* span
+anywhere on the card**, and an `unmapped[]` entry's own span counts toward that exactly like any
+other field's. That means declaring a gap honestly and declaring it under a false `reason` cover the
+same bytes either way — the verifier checks `reason` for closed-enum membership only (see
+`reference/field-definitions.md`, the `unmapped[]` section), never against the content it is supposed
+to explain. So there is a real benefit, in the sense of evading detection, to moving content into
+`unmapped[]` under a reason that does not match why it lacks a field — that failure mode is disclosed
+as a known, unfixed gap in the README's Limits section, and this rule does not close it. What it does
+close is content with **no covering span at all**: declare nothing, and the hole is caught.
 
 ## 10 · Before you emit
 

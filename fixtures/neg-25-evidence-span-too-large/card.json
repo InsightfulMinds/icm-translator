@@ -3,7 +3,7 @@
   "profile": "lesson-card.v1",
   "generated_utc": "2026-09-19T13:41:51Z",
   "source": {
-    "file": "inputs/not-a-real-input.txt",
+    "file": "fixtures/fixture-transcript.txt",
     "sha256": "10bb0b7b109d725e6b049999f9127d03e7dfca8dd05e603b13546e2b22fb936d",
     "bytes": 386,
     "duration_seconds": "not in source"
@@ -19,10 +19,10 @@
         }
       },
       "evidence": {
-        "text": "my name is Sara",
+        "text": "Hello, my name is Sara and this is the onboarding walkthrough. Dexter is a platform that gives you an AI agent. The first thing is to click the link below. Next, click continue. Then enter your email address. Later on you will click continue again to finish. It costs $5,000 a month for the top tier. One member raised an objection about the price during the call. Thanks for watching.\n",
         "span": {
-          "start": 7,
-          "end": 22
+          "start": 0,
+          "end": 386
         }
       }
     }
@@ -185,8 +185,8 @@
   ],
   "coverage": {
     "total_bytes": 386,
-    "covered_bytes": 335,
-    "pct": 86.79,
+    "covered_bytes": 386,
+    "pct": 100,
     "unmapped_threshold_bytes": 32
   }
 }

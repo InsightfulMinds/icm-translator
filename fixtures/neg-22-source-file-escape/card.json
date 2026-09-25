@@ -3,7 +3,7 @@
   "profile": "lesson-card.v1",
   "generated_utc": "2026-09-19T13:41:51Z",
   "source": {
-    "file": "../../../../../../../etc/wp6a-does-not-exist-probe.txt",
+    "file": "../../../../../../../etc/escape-probe-does-not-exist.txt",
     "sha256": "10bb0b7b109d725e6b049999f9127d03e7dfca8dd05e603b13546e2b22fb936d",
     "bytes": 386,
     "duration_seconds": "not in source"

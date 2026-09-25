@@ -229,7 +229,7 @@ function findDuplicateKeys(text) {
 // Matching bytes alone do not establish that two quotes are actually about each other — a card can
 // carry two individually-real quotes that have nothing to do with one another. These thresholds
 // were measured against every shipped card (cards/*.json) plus fixtures/control/card.json on
-// 2026-09-24 (see WP23-RELATIONS.md for the full table) and picked as the loosest bound that every
+// 2026-09-24 (the full calibration table is in reference/field-definitions.md) and picked as the loosest bound that every
 // legitimate occurrence in that data satisfies, with headroom — not tuned to reject one attack.
 //
 //   numbers[].unit immediately after numbers[].value: both real occurrences measured a 1-byte gap
@@ -241,6 +241,14 @@ const UNIT_MAX_GAP_BYTES = 5;
 //   room for a longer natural-language connective phrase a hand-authored card might use, while
 //   staying well under the length of a typical sentence in these transcripts.
 const ASSOCIATION_MAX_GAP_BYTES = 60;
+//   speakers[].evidence, measured as a PERCENTAGE OF THE WHOLE INPUT rather than a fixed byte count
+//   (see the check itself, below, for why relative-to-source is the right unit here). Measured
+//   across every shipped card plus fixtures/control/card.json on 2026-09-24: six real occurrences,
+//   8/9/15/17/18/22 bytes, against inputs of 1441/1441/386/430/465/6713 bytes — 0.33% to 4.19% of
+//   their respective inputs, maximum 4.19%. 20% is roughly 5x that measured maximum ratio, in
+//   keeping with the headroom convention above, while staying far below the 100% a whole-file span
+//   occupies regardless of how large or small the input is.
+const EVIDENCE_MAX_PCT_OF_SOURCE = 20;
 
 // ── the per-card check ──────────────────────────────────────────────────────────────────────────
 function verifyCard(cardPath) {
@@ -319,12 +327,27 @@ function verifyCard(cardPath) {
   if (!/^(?:inputs|fixtures)\//.test(srcRel))
     return problems.concat([{ code: 'SOURCE_FILE_NOT_ALLOWED', why: `source.file \`${srcRel}\` is not under inputs/ or fixtures/` }]);
 
-  // 2c · an inputs/ path must be one of the files this repo actually registers as a shipped input —
-  //      closes the case where a new, unlisted inputs/*.txt is smuggled in and cited.
-  if (srcRel.startsWith('inputs/') && !REGISTERED_INPUTS.has(srcRel))
-    return problems.concat([
-      { code: 'SOURCE_FILE_UNREGISTERED', why: `source.file \`${srcRel}\` is not listed in inputs/sha256sums.txt` },
-    ]);
+  // 2c · REMOVED (FIX-1, 2026-09-24). This used to reject any inputs/*.txt path that was not one of
+  //      the four files this repo ships (SOURCE_FILE_UNREGISTERED), on the theory that it closed a
+  //      "smuggled input" hole. It didn't just close that hole, it broke the tool's headline use
+  //      case: this repo's whole pitch is "drop your own transcript into inputs/, run the documented
+  //      workflow, and it verifies" — and because this function with no arguments verifies every
+  //      card in cards/, one new, unregistered-but-genuine card failed the entire run.
+  //
+  //      Think about what registration actually proves. The property this file exists to guarantee
+  //      is "nothing in the output exists that was not in the input" — and that is fully established
+  //      for an unregistered file by the checks that remain: 2a/2b (the path is real and inside
+  //      inputs/ or fixtures/), the sha256 match below (the bytes are exactly what source.sha256
+  //      claims), and every span re-slicing cleanly out of those bytes. Citing a file this repo does
+  //      not vouch for the PROVENANCE of is not the same claim as inventing content, and conflating
+  //      the two punished a stranger's honest, hash-matching citation for a property (repo
+  //      registration) it never claimed to have.
+  //
+  //      The narrower, real property — "the FOUR cards this repo ships cite inputs this repo
+  //      actually registered and audited" — still holds, and is still checked, just relocated to
+  //      where it belongs: checker/selftest.mjs asserts it directly against cards/*.json and
+  //      inputs/sha256sums.txt. That keeps the repo's own shipped evidence honest without rejecting
+  //      anyone else's.
 
   // 2d · a card whose own filename matches one of the registered inputs' basenames is bound to cite
   //      exactly that input. This is what actually stops the AA/AS shape of attack — take a real,
@@ -471,6 +494,32 @@ function verifyCard(cardPath) {
         P(
           'SPEAKER_NAME_NOT_IN_EVIDENCE',
           `speakers[${i}].name [${n.start},${n.end}) is not contained in speakers[${i}].evidence [${e.start},${e.end}) — a name quoted from outside its own establishing phrase is not evidence for that phrase`
+        );
+    });
+
+  // 5.1a · speakers[].evidence cannot be an implausibly large fraction of the whole input. Without
+  //        this, a card can set evidence.span to [0, N) — the entire file, byte-identical to itself,
+  //        so it trivially satisfies the containment check above no matter what name it wraps — and
+  //        that single span marks the ENTIRE input covered, defeating both omission gates
+  //        (UNMAPPED_OMISSION and COVERAGE_BELOW_FLOOR) at once. That is not a hypothetical: a card
+  //        asserting a software platform is the session's only speaker, with every other field "not
+  //        in source", verified clean before this check existed. The bound is a PERCENTAGE of the
+  //        source, not a fixed byte count, precisely so it scales with the input: a whole-file span
+  //        is 100% of ANY input regardless of size, while a real self-introduction stays a small
+  //        single-digit percentage (see EVIDENCE_MAX_PCT_OF_SOURCE's calibration comment above). This
+  //        is a stated, disclosed limit, not a hidden one: for a genuinely tiny input (well under
+  //        EVIDENCE_MAX_PCT_OF_SOURCE's implied byte floor for that file), a real short establishing
+  //        phrase and a whole-file span can no longer be told apart by length alone.
+  if (Array.isArray(card.speakers))
+    card.speakers.forEach((sp, i) => {
+      const e = sp?.evidence?.span;
+      if (!e) return; // already reported by verifyQuote/QUOTE_MISSING_SPAN
+      const len = e.end - e.start;
+      const pctOfSource = (len / N) * 100;
+      if (pctOfSource > EVIDENCE_MAX_PCT_OF_SOURCE)
+        P(
+          'EVIDENCE_SPAN_TOO_LARGE',
+          `speakers[${i}].evidence span is ${len} bytes, ${pctOfSource.toFixed(2)}% of the ${N}-byte input (bound ${EVIDENCE_MAX_PCT_OF_SOURCE}%) — an establishing phrase this large relative to its source is not a self-introduction, it is most or all of the transcript`
         );
     });
 

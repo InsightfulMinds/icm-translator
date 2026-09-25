@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-25-evidence-span-too-large",
+  "invention_class": "evidence-span-too-large",
+  "expect_codes": [
+    "EVIDENCE_SPAN_TOO_LARGE"
+  ],
+  "note": "speakers[0].evidence repointed at the ENTIRE input, byte-for-byte — span [0,386), text equal to the full contents of fixtures/fixture-transcript.txt. This is real, byte-matching, in-range and trivially contains the name span, so before this fix nothing rejected it: SPEAKER_NAME_NOT_IN_EVIDENCE cannot fire (any span contains any name once it covers the whole file), and the one span alone marks every byte of the input covered, so neither UNMAPPED_OMISSION nor COVERAGE_BELOW_FLOOR can fire either — coverage is restated honestly (335 -> 386 bytes, 100%) because a careless restatement would trip the coverage-mismatch gate instead and prove nothing about evidence size. Caught only because EVIDENCE_MAX_PCT_OF_SOURCE bounds evidence to 20% of the input's bytes: 386 bytes is 100% of a 386-byte input, an order of magnitude over the bound."
+}

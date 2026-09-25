@@ -196,11 +196,18 @@ them. Declaring a gap in `unmapped[]` is one way to cover it, because its own sp
 any other field's span; the check is symmetric across every field, not a lookup against the
 `unmapped[]` list specifically. What it does **not** verify is whether a declared entry's `reason` is
 the true one — enum membership is checked (see the table above), truthfulness against the content is
-not. That is still what makes the brief's CRM (customer-relationship-management) example — *"a CRM
-note that silently omits the objection the prospect raised is worse than useless"* — mechanically
-enforceable rather than a promise: nothing above the bar can go completely untouched, no matter which
-field is supposed to account for it. `negative fixture 06` drops a passage and declares nothing
-anywhere, leaving it with no covering span at all, which is what gets caught.
+not.
+
+That closes the specific failure the brief's CRM (customer-relationship-management) example names
+literally — *"a CRM note that silently omits the objection the prospect raised is worse than
+useless"* — only in the narrow case where the objection ends up with **no covering span anywhere on
+the card**. `negative fixture 06` stages exactly that: it drops a passage and declares nothing
+anywhere, leaving it with no covering span at all, which is what gets caught. It is not the stronger,
+general guarantee that sentence implies. Move the same objection into `unmapped[]` under a false
+`reason` instead of dropping it outright — `reason: "no-field-for-this-content"` on content that
+plainly belongs in `claims[]` — and coverage is byte-identical to declaring it honestly, so the check
+cannot tell the two apart. This is a disclosed, unfixed gap; see the README's Limits section for a
+worked, verified reproduction.
 
 ## `coverage`
 
@@ -245,8 +252,30 @@ Exit `1` on any failure, with the expected and actual text printed at the first 
 ## What the verifier cannot fully enforce
 
 Checks 6–9 above are proximity checks, calibrated against every shipped card and the control fixture
-(see `WP23-RELATIONS.md` for the measurement table) rather than tuned to catch one known attack. Be
-precise about what they do and do not prove:
+rather than tuned to catch one known attack. Here is the measurement itself, so the claim does not
+rest on a file outside this folder — every occurrence of the four relations across `cards/01`–`04`
+and `fixtures/control/card.json`, gaps measured directly from the committed span bytes:
+
+| card | speaker name ⊂ evidence? | number → unit gap | definition → term gap | entity role ↔ name |
+|---|---|---|---|---|
+| `01-mobile-app-setup` | (no speakers) | `$5,000`→`a month`: gap 1; `$50,000`: unit absent | (no definitions) | Google, AI: role absent |
+| `02-desktop-setup` | Marco Salas: contained (`[27,38)` ⊂ `[16,38)`) | (no numbers) | Dexter: gap 11 (`, which is `) | Marco Salas: role **contains** name (self-intro); Dexter: gap 11; 8 other entities: role absent |
+| `03-mcp-walkthrough` | (no speakers) | `15`→`people`: gap 1; `10`: unit absent | (no definitions) | 15 entities, all role absent |
+| `04-pricing-objection` | Dana: contained (`[27,31)` ⊂ `[23,31)`); Tomas: contained (`[64,69)` ⊂ `[60,69)`) | 4 numbers: `$5,800`→`per site`: gap 1; other 3: unit absent | (no definitions) | Thursday, August: role absent |
+| `fixtures/control` | Sara: contained (`[18,22)` ⊂ `[7,22)`) | `$5,000`→`a month`: gap 1 | Dexter: gap 4 (` is `) | Dexter: gap 4; Sara: role absent |
+
+Reproduce any cell yourself — for example, card 02's definition gap:
+`node -e 'const c=require("./cards/02-desktop-setup.card.json");console.log(c.definitions[0].definition.span.start-c.definitions[0].term.span.end)'`
+prints `11`.
+
+From that table: speaker containment holds without exception on every real speaker (4 of 4 —
+Marco Salas, Dana, Tomas, Sara), so the chosen rule is hard containment, no slack. The number/unit gap
+measures 1 byte in every occurrence where a unit is stated; the chosen bound is 5 bytes, headroom for
+stray whitespace without approaching the length of an unrelated quote. The definition/term gap
+measures 4 and 11 bytes (the connective text itself, `" is "` and `", which is "`); the chosen bound
+is 60 bytes, roughly 5x the observed maximum. Entity role/name reuses that same 60-byte bound, or
+containment where the role phrase is a self-introduction. Be precise about what these checks do and do
+not prove:
 
 - **What they prove:** the two quotes involved are not just independently real — they are close
   enough in the source, in the specific geometric relationship the field's definition describes

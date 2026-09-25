@@ -107,7 +107,7 @@
       "properties": {
         "file": {
           "type": "string",
-          "description": "Path to the input, relative to the repo root. This file ships in the repo so every span is re-checkable. The verifier constrains this beyond the bare string type: it must resolve strictly inside the repo (no absolute path, no `..` traversal — SOURCE_FILE_ESCAPES_REPO), it must sit under `inputs/` or `fixtures/` (the only two directories this profile treats as holding citable transcript bytes — SOURCE_FILE_NOT_ALLOWED), and an `inputs/` path must be one of the files listed in `inputs/sha256sums.txt` (SOURCE_FILE_UNREGISTERED). A card whose own filename matches one of the registered inputs' basenames (e.g. a file living at `cards/04-pricing-objection.card.json`) is additionally bound to cite exactly that input (SOURCE_FILE_IDENTITY_MISMATCH), so a shipped card cannot be repointed at a different, uncontrolled file while keeping its name. This does NOT prove the named file is the CORRECT source for a card verified under an unrelated name or path — a card verified from outside that naming convention may still cite any real file under `fixtures/`, which is a disclosed residual gap, not a hidden one."
+          "description": "Path to the input, relative to the repo root. This file ships in the repo so every span is re-checkable. The verifier constrains this beyond the bare string type: it must resolve strictly inside the repo (no absolute path, no `..` traversal — SOURCE_FILE_ESCAPES_REPO), and it must sit under `inputs/` or `fixtures/` (the only two directories this profile treats as holding citable transcript bytes — SOURCE_FILE_NOT_ALLOWED). An `inputs/` path does NOT have to be one of the four files this repo ships and registers in `inputs/sha256sums.txt` — that registry is a repo-provenance record, not a gate: a card citing any real, hash-matching, in-bounds file verifies, which is what lets a reader drop their own transcript into `inputs/` and check it (FIX-1, 2026-09-24; the registry is instead audited against the FOUR shipped cards by checker/selftest.mjs). A card whose own filename matches one of the registered inputs' basenames (e.g. a file living at `cards/04-pricing-objection.card.json`) is additionally bound to cite exactly that input (SOURCE_FILE_IDENTITY_MISMATCH), so a shipped card cannot be repointed at a different, uncontrolled file while keeping its name. This does NOT prove the named file is the CORRECT source for a card verified under an unrelated name or path — a card verified from outside that naming convention may still cite any real file under `fixtures/`, which is a disclosed residual gap, not a hidden one."
         },
         "sha256": {
           "type": "string",
@@ -140,7 +140,7 @@
           },
           "evidence": {
             "$ref": "#/$defs/quote",
-            "description": "The span of the phrase that established the speaker, e.g. a self-introduction. A name with no establishing phrase is not a speaker."
+            "description": "The span of the phrase that established the speaker, e.g. a self-introduction. A name with no establishing phrase is not a speaker. The verifier additionally bounds this span's length to a small percentage of the whole input (EVIDENCE_SPAN_TOO_LARGE, FIX-1 2026-09-24) — an establishing phrase is short by nature, and without this bound a card could set evidence to the entire file, which trivially contains the name and marks the whole input covered in one move."
           }
         }
       }
