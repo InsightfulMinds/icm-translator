@@ -1,8 +1,8 @@
-# Format spec — how a lesson card is written to disk
+# Format spec: how a lesson card is written to disk
 
 `schema/lesson-card.v1.json` fixes *what* a card contains. This file fixes *how it is written*, so
 two runs that found the same things produce files that are byte-identical except for
-`generated_utc` — that one field is read from the system clock at write time and is expected to
+`generated_utc`. That one field is read from the system clock at write time and is expected to
 differ run to run. Diff two cards after stripping that line and the remainder shows content drift
 only.
 
@@ -21,7 +21,7 @@ schema · profile · generated_utc · source · title · speakers ·
 claims · definitions · numbers · entities · steps · unmapped · coverage
 ```
 
-Not alphabetical, not insertion order — that exact order, in every card, regardless of input.
+Not alphabetical, not insertion order: that exact order, in every card, regardless of input.
 Nested objects follow the key order declared in their `required` array. `quote` objects are always
 `{"text": …, "span": …}` and spans are always `{"start": …, "end": …}`.
 
@@ -32,7 +32,7 @@ uncheckable.
 ## Absent values
 
 The literal string `not in source`, lower case, single spaces, no punctuation. It is a JSON string
-in every position it can appear — including where the field would otherwise have been an array.
+in every position it can appear, including where the field would otherwise have been an array.
 
 ## Spans
 
@@ -45,7 +45,7 @@ in every position it can appear — including where the field would otherwise ha
 ## Text
 
 Quote `text` is copied out of the input unchanged: original casing, original punctuation, original
-whitespace, original spelling — including transcription artefacts. It is **not** trimmed,
+whitespace, original spelling, including transcription artefacts. It is **not** trimmed,
 **not** re-wrapped, and **not** unicode-normalised. JSON escaping is the only transformation
 applied, because JSON requires it.
 

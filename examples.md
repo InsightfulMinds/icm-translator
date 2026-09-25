@@ -1,4 +1,4 @@
-# examples — the contract holding on real inputs
+# examples: the contract holding on real inputs
 
 Every excerpt below is copied out of a card in `cards/`, produced from a transcript in `inputs/`.
 Nothing here is illustrative-but-fictional. You can check any of it:
@@ -7,7 +7,7 @@ Nothing here is illustrative-but-fictional. You can check any of it:
 node checker/verify-traces.mjs cards/01-mobile-app-setup.card.json
 ```
 
-Or check a single span by hand — this is the whole trick, and it takes one command:
+Or check a single span by hand. This is the whole trick, and it takes one command:
 
 ```bash
 # byte range 947-953 of input 1 should be exactly "$5,000"
@@ -16,10 +16,10 @@ dd if=inputs/01-mobile-app-setup.txt bs=1 skip=947 count=6 2>/dev/null; echo
 
 ---
 
-## The complete pairs — full input, full output, nothing excerpted
+## The complete pairs: full input, full output, nothing excerpted
 
 Everything below this section (starting at Example 1) is a field-level excerpt: real, but cropped to
-the field being discussed. This section is the opposite — for three of the four shipped inputs, the
+the field being discussed. This section is the opposite: for three of the four shipped inputs, the
 entire input file and the entire output card, so there is more than one place in this document where
 nothing has been left out.
 
@@ -38,18 +38,18 @@ wc -c inputs/*.txt
 
 Three pairs are shown below, picked to differ from each other on more than size:
 
-- **`04-pricing-objection`** (1,441 bytes, Pair 1) — the smallest input, and the only two-party
+- **`04-pricing-objection`** (1,441 bytes, Pair 1), the smallest input, and the only two-party
   dialogue of the three.
-- **`01-mobile-app-setup`** (2,657 bytes, Pair 2) — a single-narrator monologue instead of a dialogue,
+- **`01-mobile-app-setup`** (2,657 bytes, Pair 2), a single-narrator monologue instead of a dialogue,
   with `source.duration_seconds` populated, which neither other pair here has.
-- **`02-desktop-setup`** (6,713 bytes, Pair 3) — the only one of the three with both a populated
+- **`02-desktop-setup`** (6,713 bytes, Pair 3), the only one of the three with both a populated
   `speakers[]` and a populated `definitions[]` on the same card.
 
-`03-mcp-walkthrough` (7,573 bytes) is not reproduced as a full pair here — it is the largest of the
+`03-mcp-walkthrough` (7,573 bytes) is not reproduced as a full pair here. It is the largest of the
 four inputs and would make this page mostly JSON. Its distinguishing content, a name shipped mangled
 exactly as mis-heard, is already shown as a checkable excerpt in Example 5 below.
 
-Every card embedded below is the **exact bytes currently on disk** — not reflowed, not reformatted —
+Every card embedded below is the **exact bytes currently on disk**, not reflowed, not reformatted,
 **with one guaranteed exception: `generated_utc`.** That field is the wall clock at write time, so the
 moment you run `node checker/convert.mjs` yourself, your copy of each card will differ from the block
 below on exactly that one line and nowhere else. `reference/format-spec.md` documents the same
@@ -63,19 +63,19 @@ git diff -U0 -- cards/ | grep -v generated_utc | grep -cE '^[+-][^+-]'   # 0 —
 
 Each pair states its own measured byte counts and hashes, and a diff between the fenced block and the
 real file was run before this page was saved (see the report for this work package). If the checker or
-a card regenerates after this page is saved, the numbers here will drift from disk again — that is
+a card regenerates after this page is saved, the numbers here will drift from disk again. That is
 inherent to embedding a generated artifact in prose, and the fix is the same each time: re-run the
 `wc -c` / `shasum` commands above and re-copy the file, not hand-edit a number.
 
 ---
 
-### Pair 1 — `04-pricing-objection`
+### Pair 1: `04-pricing-objection`
 
 **Why this one:**
 
-- **Smallest input** (1,441 bytes) — short enough to read in full on this page without turning it into a scroll of its own.
+- **Smallest input** (1,441 bytes), short enough to read in full on this page without turning it into a scroll of its own.
 - It is the only **two-party dialogue** of the three pairs shown here (`speakers[]` has two entries), and its numbers include a mid-sentence self-correction ("$5,000, sorry, $5,800") that exercises unit attachment on a harder sentence than a plain statement would.
-- It is also the synthetic input described in `inputs/PROVENANCE.md` — a hand-written two-party argument, shipped specifically to test the translator outside its declared single-narrator profile. That is disclosed there, not hidden here.
+- It is also the synthetic input described in `inputs/PROVENANCE.md`, a hand-written two-party argument, shipped specifically to test the translator outside its declared single-narrator profile. That is disclosed there, not hidden here.
 
 **Input byte count and hash, measured directly:**
 
@@ -89,9 +89,9 @@ shasum -a 256 inputs/04-pricing-objection.txt
 32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460  inputs/04-pricing-objection.txt
 ```
 
-1,441 bytes, sha256 `32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460` — matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
+1,441 bytes, sha256 `32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460`, matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
 
-**The literal input** — the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
+**The literal input**, the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
 
 ```text
 Okay, we're recording. I'm Dana, I run onboarding here. And I'm Tomas, I'm on the finance side. So the reason I pulled this meeting is the pilot recap deck says we onboarded forty-two schools last quarter and I don't think that number is right. It is right. I built that slide off the provisioning export. Then the provisioning export is wrong, because I closed twenty-nine contracts and you cannot onboard a school that has not signed anything. Some of those forty-two were trial seats that never converted. That is the gap. Right, but the deck does not say trial anywhere, it says onboarded, and the board is going to read that as revenue. Okay, that is fair. We quoted the district $5,000, sorry, $5,800 per site, and at forty-two sites that is a number nobody can support. Let's go ahead and park the pricing for a second. No, I do not want to park it, because the renewal email goes out Thursday and it quotes the same figure. Check the invoice from August, it has the real one on it. I did check it. The invoice says $5,800 and the deck says $5,000, which is the whole reason I am raising this now. Fine. Then we correct the deck. We are not correcting the deck two days before the board reads it, we are correcting the email. Both. We correct both. I still think forty-two is defensible if we footnote it as trials. I do not agree with that, and I want it on the record that I do not agree. Noted. Anything else? No. Thanks everyone.
@@ -110,10 +110,10 @@ shasum -a 256 cards/04-pricing-objection.card.json
 c41520225d836b7473297be038921efcbd5006685ed7c597ad2284836fb01f99  cards/04-pricing-objection.card.json
 ```
 
-**The literal output card** — `cards/04-pricing-objection.card.json`, 7,183 bytes measured with `wc -c < cards/04-pricing-objection.card.json`. These are the exact bytes on disk, copied in, not reformatted — the indentation and line breaks below are the file's own:
+**The literal output card**, `cards/04-pricing-objection.card.json`, 7,183 bytes measured with `wc -c < cards/04-pricing-objection.card.json`. These are the exact bytes on disk, copied in, not reformatted. The indentation and line breaks below are the file's own:
 
 <details>
-<summary>Exact contents of <code>cards/04-pricing-objection.card.json</code> (7,183 bytes) — click to expand</summary>
+<summary>Exact contents of <code>cards/04-pricing-objection.card.json</code> (7,183 bytes), click to expand</summary>
 
 ```json
 {
@@ -472,11 +472,11 @@ c41520225d836b7473297be038921efcbd5006685ed7c597ad2284836fb01f99  cards/04-prici
 
 </details>
 
-**Read the pair — four fields, their spans, and the commands that pull them**
+**Read the pair, four fields, their spans, and the commands that pull them**
 
 Every command below was run from the repo root and its output is pasted exactly, not retyped.
 
-**1. `speakers[0].name`** — value `Dana`, span `27–31`:
+**1. `speakers[0].name`**, value `Dana`, span `27–31`:
 
 ```bash
 dd if=inputs/04-pricing-objection.txt bs=1 skip=27 count=4 2>/dev/null; echo
@@ -485,8 +485,8 @@ dd if=inputs/04-pricing-objection.txt bs=1 skip=27 count=4 2>/dev/null; echo
 Dana
 ```
 
-**2. `speakers[0].evidence`** — value `I'm Dana`, span `23–31`. This is the field that makes the
-name checkable rather than asserted — it points at the phrase that established it, not just the
+**2. `speakers[0].evidence`**, value `I'm Dana`, span `23–31`. This is the field that makes the
+name checkable rather than asserted. It points at the phrase that established it, not just the
 name itself:
 
 ```bash
@@ -496,10 +496,10 @@ dd if=inputs/04-pricing-objection.txt bs=1 skip=23 count=8 2>/dev/null; echo
 I'm Dana
 ```
 
-**3. `numbers[0].unit` vs `numbers[1].unit`** — the sentence is a self-correction: "We quoted the
+**3. `numbers[0].unit` vs `numbers[1].unit`**, the sentence is a self-correction: "We quoted the
 district $5,000, sorry, $5,800 per site". "Per site" sits right after `$5,800`, the figure that
 stands, and does not grammatically reach back to `$5,000`, the figure the speaker corrected away.
-The card now reflects exactly that split — `numbers[0]` (`$5,000,`) carries `"unit": "not in
+The card now reflects exactly that split: `numbers[0]` (`$5,000,`) carries `"unit": "not in
 source"`, and `numbers[1]` (`$5,800`) carries a real `unit` with its own span:
 
 ```bash
@@ -514,11 +514,11 @@ per site
 This is a change from an earlier version of this page, which showed both figures as
 `"unit": "not in source"`. The checker was hardened since then and now extracts a stated unit when
 it is grammatically adjacent to the number it modifies, instead of declaring it absent by default.
-`numbers[0]` still correctly gets no unit — "per site" does not attach to the corrected-away figure
-— so the discipline from the earlier version (no guessing) is intact; what changed is that a present,
+`numbers[0]` still correctly gets no unit ("per site" does not attach to the corrected-away figure),
+so the discipline from the earlier version (no guessing) is intact; what changed is that a present,
 adjacent unit is no longer thrown away along with it.
 
-**4. `unmapped[0]`** — value `"Okay, we're recording."`, span `0–22`, reason
+**4. `unmapped[0]`**, value `"Okay, we're recording."`, span `0–22`, reason
 `below-extraction-threshold`:
 
 ```bash
@@ -528,7 +528,7 @@ dd if=inputs/04-pricing-objection.txt bs=1 skip=0 count=22 2>/dev/null; echo
 Okay, we're recording.
 ```
 
-This is the opening line of the transcript — true, but not a claim, a step, a number, or a
+This is the opening line of the transcript, true, but not a claim, a step, a number, or a
 definition, so the card names it and moves on instead of forcing it into a field it does not belong
 in. Eleven other spans get the same treatment; together with the field above, this is the same
 "absent marker" and "named gap" pattern documented in Examples 4 and 6, shown here on one small card
@@ -552,13 +552,13 @@ Exit code: `0`.
 
 ---
 
-### Pair 2 — `01-mobile-app-setup`
+### Pair 2: `01-mobile-app-setup`
 
 **Why this one:**
 
-- **Second-smallest input** (2,657 bytes) and the only **single-narrator monologue** of the three — no `speakers[]`, which is a real contrast to Pair 1's two-party dialogue.
+- **Second-smallest input** (2,657 bytes) and the only **single-narrator monologue** of the three, no `speakers[]`, which is a real contrast to Pair 1's two-party dialogue.
 - The only one of the three with a populated `source.duration_seconds` (161 seconds instead of `"not in source"`), which exercises a field the other two pairs on this page leave empty.
-- Carries the largest `steps[]` list of the three pairs (17 entries) and a 9-item `unmapped[]` list, both already discussed as field excerpts in Examples 1 and 6 below — this pair shows them in the full card those excerpts were cut from.
+- Carries the largest `steps[]` list of the three pairs (17 entries) and a 9-item `unmapped[]` list, both already discussed as field excerpts in Examples 1 and 6 below. This pair shows them in the full card those excerpts were cut from.
 
 **Input byte count and hash, measured directly:**
 
@@ -572,12 +572,12 @@ shasum -a 256 inputs/01-mobile-app-setup.txt
 df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8  inputs/01-mobile-app-setup.txt
 ```
 
-2,657 bytes, sha256 `df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8` — matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
+2,657 bytes, sha256 `df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8`, matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
 
-**The literal input** — the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
+**The literal input**, the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
 
 <details>
-<summary>Full contents of <code>inputs/01-mobile-app-setup.txt</code> (2,657 bytes) — click to expand</summary>
+<summary>Full contents of <code>inputs/01-mobile-app-setup.txt</code> (2,657 bytes), click to expand</summary>
 
 ```text
 How do you set this up inside of your mobile device? The first thing is to click the link that is underneath this video. It's going to take you to a page that looks just like this. And the next thing is to continue with Google or put your email and you will receive a code. All you have to do is just copy and paste it. Continue with Google. We select the same account. We suggest you use the same school email account so you're not jiggling through multiple accounts. That we can continue with Google. And the next thing is to upload a photo of us. Enter our name and our username. If you don't know where that is, you can simply click this button right here. We can zoom into the page. And as you can see, it will be right underneath your profile name. And after that, it's going to ask us a couple questions. And this is going to help our AI recommend the right strategies for your current stage. Because what works for a person that is making $5,000 a month right now, it's not the same strategy that a person that is making $50,000 need. So we can go ahead and click that. Click next. And just like that, we will submit a profile. And it's going to ask us if we are on mobile or in a computer. In this case, we are on a phone. We can click continue. And just like that, we're going to have access to the personalized roadmap and our profile details. But this looks too clunky and we don't want to have this inside of our phone. So what we can do is just click that share button right in the middle. Scroll a little bit. Add to home screen. Just click add. Add. And just like that, we are now going to have this in our mobile without needing to have a app to download. You can access your profile details. You can see all the communities that you are in. And you can also ask the AI chat button any questions that you have. So the first thing is to watch this video. We can go ahead and open the community and it's going to redirect us to either a post or ask us to make a post. So we can click open community. And in this case, I have already done that. So what I need to do is to copy the link. Paste it here. Verify comment. You see the comment has already been verified. I can click complete. And just like that, I can continue with the roadmap inside of my phone. If you have any questions, feel free to let us know. We are happy to help you out. This mobile version is still under development. So if you spot any issues, feel free to let us know. We are happy to help and get you on track as soon as possible. I wish you the best of luck. Ask anything to the AI agent. Get started with the roadmap. And I'll see you inside of the community. Ciao.
@@ -598,10 +598,10 @@ shasum -a 256 cards/01-mobile-app-setup.card.json
 59d62976fc98302ba3fc6c449bf2f2d5a90152acbda4eef447f6b2eeb7fa1787  cards/01-mobile-app-setup.card.json
 ```
 
-**The literal output card** — `cards/01-mobile-app-setup.card.json`, 10,622 bytes measured with `wc -c < cards/01-mobile-app-setup.card.json`. These are the exact bytes on disk, copied in, not reformatted — the indentation and line breaks below are the file's own:
+**The literal output card**, `cards/01-mobile-app-setup.card.json`, 10,622 bytes measured with `wc -c < cards/01-mobile-app-setup.card.json`. These are the exact bytes on disk, copied in, not reformatted. The indentation and line breaks below are the file's own:
 
 <details>
-<summary>Exact contents of <code>cards/01-mobile-app-setup.card.json</code> (10,622 bytes) — click to expand</summary>
+<summary>Exact contents of <code>cards/01-mobile-app-setup.card.json</code> (10,622 bytes), click to expand</summary>
 
 ```json
 {
@@ -1125,7 +1125,7 @@ shasum -a 256 cards/01-mobile-app-setup.card.json
 
 </details>
 
-**What this pair shows that Pair 1 does not.** `source.duration_seconds` is populated here (`161`) instead of `"not in source"` — check it directly:
+**What this pair shows that Pair 1 does not.** `source.duration_seconds` is populated here (`161`) instead of `"not in source"`. Check it directly:
 
 ```bash
 python3 -c "import json; print(json.load(open('cards/01-mobile-app-setup.card.json'))['source'])"
@@ -1134,7 +1134,7 @@ python3 -c "import json; print(json.load(open('cards/01-mobile-app-setup.card.js
 {'file': 'inputs/01-mobile-app-setup.txt', 'sha256': 'df4afc2facfd01252efb2e4103bcf523946249b7566c2e430800e1d89954cca8', 'bytes': 2657, 'duration_seconds': 161}
 ```
 
-`speakers`, `definitions`, and `title` are all `"not in source"` on this card — it is a single-narrator monologue, not a dialogue, so there is no second voice to attribute and no self-introduction to quote. It also carries the longest `steps[]` list of the three pairs on this page (17 entries) and is the source of the number-with-unit / number-without-unit contrast already walked through in Example 1 below, and the nine-item `unmapped[]` list walked through in Example 6.
+`speakers`, `definitions`, and `title` are all `"not in source"` on this card. It is a single-narrator monologue, not a dialogue, so there is no second voice to attribute and no self-introduction to quote. It also carries the longest `steps[]` list of the three pairs on this page (17 entries) and is the source of the number-with-unit / number-without-unit contrast already walked through in Example 1 below, and the nine-item `unmapped[]` list walked through in Example 6.
 
 **Round-trip check:**
 
@@ -1154,11 +1154,11 @@ Exit code: `0`.
 
 ---
 
-### Pair 3 — `02-desktop-setup`
+### Pair 3: `02-desktop-setup`
 
 **Why this one:**
 
-- The only one of the three pairs shown here with both a populated `speakers[]` **and** a populated `definitions[]` entry on the same card — Pair 1 has speakers but no definitions, Pair 2 has neither.
+- The only one of the three pairs shown here with both a populated `speakers[]` **and** a populated `definitions[]` entry on the same card: Pair 1 has speakers but no definitions, Pair 2 has neither.
 - Carries the largest `entities[]` list of the three (10 entries).
 - Its speaker (`Marco Salas`) and its `Dexter` definition are the exact fields already quoted as a field excerpt in Example 3 below; this pair is the complete card that excerpt comes from.
 
@@ -1174,12 +1174,12 @@ shasum -a 256 inputs/02-desktop-setup.txt
 f75026476f201a7ff3c161a72875cc0538c440728c9133efa0727711c9ac2e7c  inputs/02-desktop-setup.txt
 ```
 
-6,713 bytes, sha256 `f75026476f201a7ff3c161a72875cc0538c440728c9133efa0727711c9ac2e7c` — matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
+6,713 bytes, sha256 `f75026476f201a7ff3c161a72875cc0538c440728c9133efa0727711c9ac2e7c`, matches `source.sha256` in the card below and the row for this input in `inputs/sha256sums.txt`.
 
-**The literal input** — the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
+**The literal input**, the whole file, byte for byte, one unbroken line with a trailing newline (that is the real shape of the source; see `inputs/PROVENANCE.md`):
 
 <details>
-<summary>Full contents of <code>inputs/02-desktop-setup.txt</code> (6,713 bytes) — click to expand</summary>
+<summary>Full contents of <code>inputs/02-desktop-setup.txt</code> (6,713 bytes), click to expand</summary>
 
 ```text
 Hello everyone, my name is Marco Salas and I'm the co-founder of Dexter, which is a platform that aims to help you find success inside of this community through an AI agent that is trained with everything that lives inside of the classroom, plus a roadmap that is going to guide you step by step on the things that you need to do in order for you to find success inside of this community. The AI agent is also going to be your accountability coach that is going to be there whenever you're falling off, you're not completing the steps or are confused on the things that you need to do next. And in this video, I want to show you how to set it up, plus how to get access to the AI agent once you have been on board. Now, the next thing is to find this link. You will probably find it somewhere in the community. Now, let's create an account. You can use a regular email for this. You would get a code inside of your email. Check your spam, put it in here and you will be able to proceed. But for quick access, we're going to continue with Google. We're going to create an account. We're going to click continue and it's going to ask us a couple of questions. All these questions are there to help the agent understand a little bit more about your journey, where you're currently at and what are your goals. So it can help you and pinpoint you to the right resources and videos that are inside of the classroom. This is an example, but let's click submit. And now it's going to create a profile of you and it's going to tell the AI agent that is now inside of the community who you are, what's your goal and what you would like to do inside of this classroom. Now, it's going to ask you if you are in a computer or a phone. In this video, I'm going to show you how to set it up in the computer. But there's going to be another video on how to set it up inside of your phone as well. Now, let's go ahead and click computer. It's going to ask us to download the extension and click add to Chrome, add extension. It's going to ask us to pin it so we can go ahead, pin it in here. Oops, that's the other one. And we're going to open. Now, mind you, I highly recommend you to create the account with the same email you use for your school community. That way you're not managing multiple accounts. And in case you forget, you always know that it's the same one as your school account. We're going to continue with Google once again. And now you're going to see access to all the communities you belong. In this case, it will be Cliff Notes. But if you belong to any other communities on Dexter, you will also be able to see it and find it right there. And now you will see a widget to the side of the screen. You can open it and you can get access to the roadmap as well as the chatbot plus your profile details. Now, in the profile details, you can modify essentially the role, the experience or your goal if at some point it changes. So the AI agent is up to date with the latest version of your journey. Now, let's go ahead and ask the chatbot a specific question. What are the first things that I need to do in order to find success inside of this community? Right now, it's start with two things. Understand the structure. Get your hands on the tool. So once I finish, I want to show you where it's taking me. Now, the first thing is, is telling me to go to navigating the course. Now, this is because I need to understand how this community works. And essentially, it's going to guide me through that process. But the more questions I have, the more I talk to it, the more it's going to understand about us. And it's going to redirect us to the right place. And the second step is to get my hands on the tool so I can go ahead and click on this lesson. And as you can see, it's guiding me through this process. I can also open the tool. And if at some point I have a question about the specific lesson, I can say, how does this lesson actually apply to me? And it's going to take a look at our profile details plus what's inside of the lesson. And it's going to give us a personalized walkthrough based on what we currently need. Right. So how it applies to you specifically, you want to build a school dashboard using Dexter MCP to automate posts, scripts, DMs, and pipelines. To do that, we need Claude, the Claude desktop, cursor, and essentially, you know, all the stuff that I also need. Your folder structure. And of course, I can keep on reading this and perhaps ask further questions ahead. Now, there is also the roadmap, which is awesome for you to get started and know exactly what are the lessons that you need to watch or what are the stuff that you need to do in order to keep yourself accountable. Also, share the journey with the members and test your knowledge through the quizzes. So as you can see, there is a step, but we also have access to more roadmaps in here. So if you're still in that beginning phase with the foundations, I highly recommend you to take a look at this roadmap. And there are other roadmaps down below that you can also get started. For example, let's go ahead and jump with the foundation. We're going to click continue. It's going to redirect us to this specific lesson. And the first task is to create a post after watching this video where we're going to reflect on where is our AI journey right now. Now, all of these instructions and the post template might change, but I just want to show you how will this actually work at play. I'm going to create a post. We're going to copy this title, put it in here, delete this part, put our name, Marco. And I can also go ahead, further customize this post. I can post it in general and I can create post. And just like that, the task has now been completed. And now I can move to the next task, which is a small quiz. Now, all of these questions are going to be based on what has been covered inside of the video. So you can go ahead, take a look at the video first and then proceed to answer the question. So let me just give it a quick try. Now we're going to submit the quiz and it's going to evaluate our answers. You can see I got all of them right, which is surprisingly, I watched half through the video. But then you can go ahead, read the feedback that is giving you if you got them wrong and proceed to click done. After that, you can click continue and then you're going to be redirected to the next task. That is it for right now. Right underneath this lesson, there's going to be a post where you can ask us any questions. If there is any issues, any bugs, feel free to let us know. I want to see you crushing it. I want to see you succeed. And I want to see you in the community as well. See you soon. Ciao.
@@ -1200,10 +1200,10 @@ shasum -a 256 cards/02-desktop-setup.card.json
 9f33c48d077768bc702168ded82c078c44e4cbb0628665b444a20dd5ce6c636d  cards/02-desktop-setup.card.json
 ```
 
-**The literal output card** — `cards/02-desktop-setup.card.json`, 19,839 bytes measured with `wc -c < cards/02-desktop-setup.card.json`. These are the exact bytes on disk, copied in, not reformatted — the indentation and line breaks below are the file's own:
+**The literal output card**, `cards/02-desktop-setup.card.json`, 19,839 bytes measured with `wc -c < cards/02-desktop-setup.card.json`. These are the exact bytes on disk, copied in, not reformatted. The indentation and line breaks below are the file's own:
 
 <details>
-<summary>Exact contents of <code>cards/02-desktop-setup.card.json</code> (19,839 bytes) — click to expand</summary>
+<summary>Exact contents of <code>cards/02-desktop-setup.card.json</code> (19,839 bytes), click to expand</summary>
 
 ```json
 {
@@ -2051,7 +2051,7 @@ shasum -a 256 cards/02-desktop-setup.card.json
 
 </details>
 
-**What this pair shows that the other two do not.** This is the only one of the three pairs with both a populated `speakers[]` **and** a populated `definitions[]` on the same card — check both directly:
+**What this pair shows that the other two do not.** This is the only one of the three pairs with both a populated `speakers[]` **and** a populated `definitions[]` on the same card. Check both directly:
 
 ```bash
 python3 -c "import json; c=json.load(open('cards/02-desktop-setup.card.json')); print(c['speakers']); print(c['definitions'])"
@@ -2061,7 +2061,7 @@ python3 -c "import json; c=json.load(open('cards/02-desktop-setup.card.json')); 
 [{'term': {'text': 'Dexter', 'span': {'start': 65, 'end': 71}}, 'definition': {'text': 'a platform that aims to help you find success inside of this community through an AI agent that is trained with everything that lives inside of the classroom', 'span': {'start': 82, 'end': 239}}}]
 ```
 
-This is the same speaker and definition already quoted as a field excerpt in Example 3 below — this pair is the full card that excerpt is cut from. It also carries the largest `entities[]` list of the three pairs shown here (10 entries).
+This is the same speaker and definition already quoted as a field excerpt in Example 3 below. This pair is the full card that excerpt is cut from. It also carries the largest `entities[]` list of the three pairs shown here (10 entries).
 
 **Round-trip check:**
 
@@ -2081,7 +2081,7 @@ Exit code: `0`.
 
 ---
 
-## Example 1 — a number with a unit, and a number without one
+## Example 1: a number with a unit, and a number without one
 
 **Input 1** (`01-mobile-app-setup.txt`, 2,657 bytes) says, around byte 940:
 
@@ -2109,11 +2109,11 @@ The first figure keeps its **comma and its dollar sign**. `$5,000` is what the i
 would be a normalised value, which is a small invention and still an invention.
 
 The second figure has **no unit**, because the speaker did not give it one. A summariser writes
-`"unit": "a month"` here — the sentence is a comparison, so the unit is obviously carried over, and
+`"unit": "a month"` here. The sentence is a comparison, so the unit is obviously carried over, and
 "obviously" is how a fact that nobody stated ends up in a card somebody acts on. The translator
 writes `not in source`.
 
-## Example 2 — a procedure, in the order it was narrated
+## Example 2: a procedure, in the order it was narrated
 
 ```json
 "steps": [
@@ -2146,18 +2146,18 @@ for m in re.finditer(rb'(?i)continue with google', data):
 481 501 b'continue with Google'
 ```
 
-Only the occurrence at span 320 — the one step 3 actually cites — byte-matches the capitalized string
+Only the occurrence at span 320 (the one step 3 actually cites) byte-matches the capitalized string
 `Continue with Google`. The other two, at 206 and 481, spell it `continue with Google` (lowercase
 `c`) and sit embedded inside longer sentences (step 2's own action text, and a separate claim at
 469–502) rather than standing alone. So a verifier that only did a case-sensitive text comparison
-would in fact single out span 320 correctly here — but that is incidental to this transcript's
+would in fact single out span 320 correctly here, but that is incidental to this transcript's
 capitalization, not a property the verifier relies on or should be trusted to have. A
 case-insensitive comparison, or a transcript that happened to capitalize all three the same way,
 collapses the distinction completely: all three occurrences say the same words. Span order is what
 `fixtures/neg-05-neighbour-span` exists to prove the verifier actually checks, independent of
 whatever casing the source happens to use.
 
-## Example 3 — a speaker, and a definition as given
+## Example 3: a speaker, and a definition as given
 
 **Input 2** opens: *"Hello everyone, my name is Marco Salas and I'm the co-founder of Dexter, which
 is a platform that aims to help you find success inside of this community…"*
@@ -2181,7 +2181,7 @@ is a platform that aims to help you find success inside of this community…"*
 The `evidence` span is what makes `speakers[]` checkable rather than asserted: a reader can open
 byte 16 and see the phrase that established the name, not just the name.
 
-The definition runs to its natural clause boundary and is **the definition as given** — long,
+The definition runs to its natural clause boundary and is **the definition as given**, long,
 marketing-flavoured, and not tightened up. Tightening it would produce a better sentence and a worse
 card.
 
@@ -2189,7 +2189,7 @@ Note also what this card does **not** contain: `Marco Salas` is a pseudonym appl
 before any card was generated, and that is disclosed in `inputs/PROVENANCE.md`. The card describes
 the bytes that ship.
 
-## Example 4 — the field that is correctly empty
+## Example 4: the field that is correctly empty
 
 All four shipped cards carry:
 
@@ -2204,7 +2204,7 @@ never says a title out loud, so the field is absent.
 This is the field working. A translator that reached one directory sideways for a nicer-looking
 `title` would have failed the brief's central rule while producing a card that looked better.
 
-## Example 5 — a mangled name, shipped mangled
+## Example 5: a mangled name, shipped mangled
 
 ```json
 { "name": { "text": "Aduba", "span": { "start": 4492, "end": 4497 } }, "kind": "unknown", "role": "not in source" }
@@ -2216,13 +2216,13 @@ entity above, and twice more inside the claims that quote the sentences it sits 
 
 Correcting it is the single most tempting edit in this repository. It is an obvious transcription
 error, the real spelling is known, and fixing it makes the card look more professional. It is also
-exactly the failure the brief disqualifies — *"a name spelled the way it usually is instead of the
-way it appeared"* — so it ships as `Aduba`.
+exactly the failure the brief disqualifies, *"a name spelled the way it usually is instead of the
+way it appeared"*, so it ships as `Aduba`.
 
 `kind` is `unknown` because the input never states what Aduba is. The card does not guess, and the
 verifier will not let it: a `kind` other than `unknown` requires a `role` span, and there is none.
 
-## Example 6 — what it could not map
+## Example 6: what it could not map
 
 ```json
 "unmapped": [
@@ -2235,6 +2235,6 @@ verifier will not let it: a `kind` other than `unknown` requires a `role` span, 
 Nine passages in card 1 went nowhere, and the card says so, with spans, so a reader can go look at
 each one and decide whether the schema needs a new field.
 
-`coverage` for this card is **97.97%** — 2,603 of 2,657 bytes accounted for. The missing 2% is the
+`coverage` for this card is **97.97%**, 2,603 of 2,657 bytes accounted for. The missing 2% is the
 whitespace and punctuation between quoted sentences. The verifier recomputes that number from the
 card's own spans and rejects the card if it does not match, so it is not a figure anybody typed in.
