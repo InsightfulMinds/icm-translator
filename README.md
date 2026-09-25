@@ -1,13 +1,13 @@
 # ICM Translator — session transcript → ICM lesson card
 
-![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg)
-
 Converts a raw session transcript (Loom/Whisper, YouTube captions, any meeting recording's text)
 into a fixed-schema **lesson card**, where every value in the output carries the byte range of the
 input it was cut from, and anything the schema could not hold is named instead of dropped.
 
 **The one property worth checking:** nothing in an output exists that was not in the input, and the
-repo ships the tool that proves it. That is mechanically enforced for every span-backed value the
+repo ships the tool that proves it.
+
+![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg) That is mechanically enforced for every span-backed value the
 schema can hold — schema validation, byte-identical text, word-boundary, containment, adjacency and
 coverage checks all run before a card ships, and each is a command you can run. It is not yet
 enforced against every way a card *file* could still misrepresent what those checks see: a short list
