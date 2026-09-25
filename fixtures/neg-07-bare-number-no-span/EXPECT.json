@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-07-bare-number-no-span",
+  "invention_class": "bare-number-no-span",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "An invented number smuggled into numbers[] as a bare JS value — not even wrapped in a {value, unit} object, let alone a span. There is nothing to re-slice and nothing to trust; the schema's `items` keyword on numbers demands an object with `value`/`unit`, so a bare number fails type checking before anything else runs."
+}

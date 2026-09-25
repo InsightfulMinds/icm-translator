@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-15-speaker-name-swap",
+  "invention_class": "speaker-name-swap",
+  "expect_codes": [
+    "SPEAKER_NAME_NOT_IN_EVIDENCE"
+  ],
+  "note": "The relationship attack: speakers[0].name is swapped for a DIFFERENT, individually-real quote — this single-speaker transcript has no second person's name to steal, so the nearest equivalent is the tool name \"Dexter\" — while the original establishing `evidence` span (\"my name is Sara\", [7,22)) is left untouched. The new name quote is byte-real (span [63,69) really is \"Dexter\"), so SPAN_TEXT_MISMATCH does not fire; it is caught only because check 5.1 requires the name span to sit INSIDE its own evidence span, and [63,69) is nowhere near [7,22). Two individually-correct quotes that have nothing to do with each other do not make a speaker."
+}

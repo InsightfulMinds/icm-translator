@@ -16,11 +16,11 @@ hold is named rather than dropped.
 ## Who does this by hand today
 
 We do. The week this was built, this exact conversion was done by hand 25 times in one sitting — a
-recorded-session catch-up where each lesson had to become a structured card so the rest of the
-system could route to it. It is slow, it is dull, and the failure mode is always the same: the
-person doing it tidies. They fix the name the transcription mangled. They round the number. They
-write the next step that was obviously implied. Then somebody downstream acts on a card that says
-something nobody ever said.
+self-reported count, not a logged one — during a recorded-session catch-up where each lesson had to
+become a structured card so the rest of the system could route to it. It is slow, it is dull, and
+the failure mode is always the same: the person doing it tidies. They fix the name the
+transcription mangled. They round the number. They write the next step that was obviously implied.
+Then somebody downstream acts on a card that says something nobody ever said.
 
 That is the whole reason this folder exists, and it is why fidelity is the only property it
 optimises for.
@@ -56,8 +56,11 @@ That is deliberate: the guarantee is on the card, not on the thing that wrote it
 
 ## Room to expand
 
-The engine is profile-driven. `lesson-card.v1` is the profile that ships. `discovery-notes → SOW`
-and `carrier-doc → comparison-sheet` are the next two, and they drop in as a new schema in
-`reference/schema/` without touching the trace verifier, which knows only about spans and bytes.
+`lesson-card.v1` is the one profile that ships, and it is a hardcoded reference implementation, not
+a schema-driven engine: `convert.mjs` does not read the schema file at runtime, and the verifier
+hardcodes the path to it. A second profile — `discovery-notes → SOW` (statement of work), for
+example — is not built, and would need its own extraction code, not just a new schema file. The
+trace verifier's span/byte-checking logic is generic enough to be reused for that; that reuse is not
+yet demonstrated.
 
-One profile is implemented. Three real fields beat a fake city.
+One profile is implemented.

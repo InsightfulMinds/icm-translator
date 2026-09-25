@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-12-empty-object-title",
+  "invention_class": "empty-object-title",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "`title` set to `{}` instead of a quote object or the absent marker. `title` is `quoteOrAbsent`, a oneOf between `$defs.quote` (needs text+span) and `$defs.absent` (the literal \"not in source\") — an empty object matches neither branch, so this is a oneOf failure with zero branches matched, not a value that happens to look empty-but-harmless."
+}

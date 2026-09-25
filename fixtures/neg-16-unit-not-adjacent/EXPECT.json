@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-16-unit-not-adjacent",
+  "invention_class": "unit-not-adjacent",
+  "expect_codes": [
+    "UNIT_NOT_ADJACENT"
+  ],
+  "note": "numbers[].unit quoted from far away from its value. The real \"a month\" unit is replaced with a byte-real quote pulled from an entirely different sentence — the claims[0] span (\"this is the onboarding walkthrough\") — chosen because it sits inside a region the control already covers, so this mutation does not also disturb coverage. field-definitions.md requires a unit to be immediately after its value; the verifier measures that gap directly rather than trusting that two individually real quotes belong together."
+}

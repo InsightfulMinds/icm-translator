@@ -20,8 +20,9 @@
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const VERIFIER = join(ROOT, 'checker/verify-traces.mjs');
@@ -51,8 +52,9 @@ console.log('\n── the control must verify clean ─────────�
 
 console.log('\n── each negative fires on its own gate, and only its own ──────────────────────');
 const negDirs = readdirSync(join(ROOT, 'fixtures')).filter((d) => d.startsWith('neg-')).sort();
-if (negDirs.length !== 6) fail('six negative fixtures present', `found ${negDirs.length}`);
-else pass('six negative fixtures present');
+const EXPECTED_NEG_COUNT = 24; // 6 original + 12 WP4a (neg-07..neg-18) + 6 WP6a property fixtures (neg-19..neg-24)
+if (negDirs.length !== EXPECTED_NEG_COUNT) fail(`${EXPECTED_NEG_COUNT} negative fixtures present`, `found ${negDirs.length}`);
+else pass(`${EXPECTED_NEG_COUNT} negative fixtures present`);
 
 for (const d of negDirs) {
   const expectPath = join(ROOT, 'fixtures', d, 'EXPECT.json');
@@ -75,9 +77,30 @@ for (const d of negDirs) {
 
 console.log('\n── each negative is the control plus exactly one mutation ─────────────────────');
 {
-  const control = JSON.parse(readFileSync(join(ROOT, 'fixtures/control/card.json'), 'utf8'));
+  const controlText = readFileSync(join(ROOT, 'fixtures/control/card.json'), 'utf8');
+  const control = JSON.parse(controlText);
   for (const d of negDirs) {
-    const neg = JSON.parse(readFileSync(join(ROOT, 'fixtures', d, 'card.json'), 'utf8'));
+    const negText = readFileSync(join(ROOT, 'fixtures', d, 'card.json'), 'utf8');
+
+    // neg-20's mutation is a duplicate JSON key, which by construction is INVISIBLE once JSON.parse
+    // has collapsed it to the last value — there is no parsed-key diff to measure. What actually
+    // proves "the control plus one mutation" here is the opposite pairing: the parsed object is
+    // IDENTICAL to the control (last-value-wins gives back exactly the control's own title), while
+    // the raw bytes on disk are NOT — that gap between "what the object says" and "what the file
+    // contains" is the whole finding, so it is asserted directly instead of forced through the
+    // generic key-diff check below.
+    if (d === 'neg-20-duplicate-key') {
+      const neg = JSON.parse(negText);
+      const parsedIdentical = JSON.stringify(neg) === JSON.stringify(control);
+      const rawDiffers = negText !== controlText;
+      if (!parsedIdentical) fail(`${d} parses to the same object as control`, 'a duplicate key should not change the PARSED value');
+      else pass(`${d} parses to the same object as control`, 'JSON.parse silently kept the real value');
+      if (!rawDiffers) fail(`${d} raw bytes differ from control`, 'no duplicate key was actually inserted');
+      else pass(`${d} raw bytes differ from control`, 'the invented title is visible on disk, invisible to JSON.parse');
+      continue;
+    }
+
+    const neg = JSON.parse(negText);
     // Compare the two as key paths so "one mutation" is measured on content, not on formatting.
     const flat = (o, p = '', acc = {}) => {
       if (o === null || typeof o !== 'object') { acc[p] = JSON.stringify(o); return acc; }
@@ -87,9 +110,12 @@ console.log('\n── each negative is the control plus exactly one mutation ─
     };
     const a = flat(control), b = flat(neg);
     const diffs = new Set([...Object.keys(a), ...Object.keys(b)].filter((k) => a[k] !== b[k]));
-    // neg-05 and neg-06 also restate coverage, deliberately: a mutation that left coverage stale
-    // would be caught by the coverage gate instead, and would prove nothing about its own class.
-    const budget = d.startsWith('neg-05') || d.startsWith('neg-06') ? 99 : 8;
+    // neg-05/06 restate coverage after removing content, deliberately: a mutation that left coverage
+    // stale would be caught by the coverage gate instead, and would prove nothing about its own
+    // class. neg-24 additionally MOVES its four real steps into unmapped[] (so removing them from
+    // steps[] does not also uncover their bytes) — a bigger, still-one-conceptual-mutation edit for
+    // the same reason: isolating the ordering property means everything else must stay covered.
+    const budget = d.startsWith('neg-05') || d.startsWith('neg-06') || d.startsWith('neg-24') ? 99 : 8;
     if (diffs.size === 0) fail(`${d} differs from control`, 'identical to the control');
     else if (diffs.size > budget) fail(`${d} is a small mutation`, `${diffs.size} leaf differences`);
     else pass(`${d} differs from control`, `${diffs.size} leaf difference(s)`);
@@ -120,6 +146,58 @@ console.log('\n── the hash gate is not dead code ─────────
     if (r.codes.join(',') !== 'SHA256_MISMATCH')
       fail('tampered input fires exactly [SHA256_MISMATCH]', `fired [${r.codes.join(', ') || 'nothing'}]`);
     else pass('tampered input fires exactly [SHA256_MISMATCH]', 'and stops there');
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+}
+
+console.log('\n── a card named after a registered input is bound to cite it (WP6a AA/AS) ─────');
+{
+  // The AA/AS premortem attack: take a card that is supposed to represent one of the four real,
+  // registered transcripts, and repoint its source.file at a different, uncontrolled file while
+  // changing nothing else. Staged here with a fully SELF-CONSISTENT swap — same bytes, same hash,
+  // only the path differs — because that is the actual shape that bypassed the pre-WP6a verifier:
+  // a mismatched hash would already have been caught by SHA256_MISMATCH, so it would prove nothing
+  // about source.file's identity being unconstrained.
+  const tmpDir = join(ROOT, 'fixtures/.tmp-selftest-identity');
+  try {
+    mkdirSync(tmpDir, { recursive: true });
+    const real = JSON.parse(readFileSync(join(ROOT, 'cards/04-pricing-objection.card.json'), 'utf8'));
+    real.source.file = 'fixtures/fixture-transcript.txt'; // same repo, real file, wrong identity
+    // sha256/bytes are left as card 04's real values on purpose: this card is now internally
+    // INCONSISTENT with fixtures/fixture-transcript.txt's actual bytes, which would itself be
+    // caught downstream by SHA256_MISMATCH — so the identity check must fire FIRST, before that,
+    // to prove it is source.file's IDENTITY being checked and not a side effect of the hash gate.
+    const namedPath = join(tmpDir, '04-pricing-objection.card.json');
+    writeFileSync(namedPath, JSON.stringify(real, null, 2) + '\n');
+
+    const bound = run(namedPath);
+    if (bound.code !== 1) fail('identity-bound card exits 1', `exited ${bound.code}`);
+    else pass('identity-bound card exits 1');
+    if (bound.codes.join(',') !== 'SOURCE_FILE_IDENTITY_MISMATCH')
+      fail('identity-bound card fires exactly [SOURCE_FILE_IDENTITY_MISMATCH]', `fired [${bound.codes.join(', ') || 'nothing'}]`);
+    else pass('identity-bound card fires exactly [SOURCE_FILE_IDENTITY_MISMATCH]', 'checked before SHA256_MISMATCH would have fired');
+
+    // Disclosed, not hidden: the SAME repointed card, verified under an UNRELATED filename, is not
+    // bound by this check and falls through to the general inputs/fixtures rule — which this exact
+    // swap satisfies, so it still verifies. This is the residual gap WP6A-PROPERTIES.md documents:
+    // the identity binding protects a card's own persistent, registered-input-shaped filename; it
+    // does not (and structurally cannot, without touching convert.mjs or cards/) bind an arbitrary
+    // path to a specific card's claimed identity.
+    const unnamedPath = join(tmpDir, 'not-a-registered-name.json');
+    const unnamed = JSON.parse(JSON.stringify(real));
+    unnamed.source.sha256 = createHash('sha256').update(readFileSync(join(ROOT, 'fixtures/fixture-transcript.txt'))).digest('hex');
+    unnamed.source.bytes = readFileSync(join(ROOT, 'fixtures/fixture-transcript.txt')).length;
+    // this second copy is NOT self-consistent against fixtures/fixture-transcript.txt's real
+    // spans (card 04's claims describe a different transcript) — that is fine and expected: the
+    // point of this half of the test is only that it gets PAST the identity check, not that it
+    // verifies clean overall, so the assertion below checks for the ABSENCE of the identity code
+    // specifically, not a clean pass.
+    writeFileSync(unnamedPath, JSON.stringify(unnamed, null, 2) + '\n');
+    const unbound = run(unnamedPath);
+    if (unbound.codes.includes('SOURCE_FILE_IDENTITY_MISMATCH'))
+      fail('unnamed copy is not identity-bound', 'SOURCE_FILE_IDENTITY_MISMATCH fired for a non-registered filename — the binding is supposed to be name-scoped');
+    else pass('unnamed copy is not identity-bound', 'residual, disclosed gap — see WP6A-PROPERTIES.md');
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -163,6 +241,46 @@ console.log('\n── the shape test still fails on real drift ─────�
     }
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
+  }
+}
+
+console.log('\n── the real converter + real verifier round-trip on genuinely unseen input ────');
+{
+  // Every other assertion in this file checks a PREPARED artifact: the hand-cut control card, or
+  // cards already sitting in cards/. None of that proves the converter itself works on input it has
+  // never seen. These two transcripts are synthetic (see fixtures/README.md), were never used to
+  // write a rule in convert.mjs or a check in verify-traces.mjs, and exercise hazards convert.mjs's
+  // own comments call out as tricky: a product name with internal capitalisation glued to a
+  // lowercase prefix (iPhone, GitHub), an identifier joined by an underscore, a non-ASCII SYMBOL
+  // character sitting immediately after a digit with no separating space (20°C, 15°), and a phrase
+  // repeated verbatim at two different byte offsets in forward order.
+  //
+  // Both the converter and the verifier run as CHILD PROCESSES with their real exit codes asserted,
+  // for the same reason the rest of this file does that. convert.mjs hardcodes its output path to
+  // cards/<stem>.card.json — there is no override for the output directory — so the generated card
+  // is read from there and then deleted again in `finally`, leaving cards/ exactly as it was; this
+  // fixture area does not own cards/ and does not ship a permanent card for synthetic input.
+  const CONVERTER = join(ROOT, 'checker/convert.mjs');
+  const E2E_INPUTS = ['fixtures/e2e-01-sensor-calibration.txt', 'fixtures/e2e-02-github-sync.txt'];
+  for (const inputRel of E2E_INPUTS) {
+    const inputPath = join(ROOT, inputRel);
+    const cardPath = join(ROOT, 'cards', `${basename(inputRel, '.txt')}.card.json`);
+    try {
+      if (!existsSync(inputPath)) { fail(`${inputRel}: exists`, 'missing — was it moved or renamed?'); continue; }
+      const conv = spawnSync(process.execPath, [CONVERTER, inputPath], { encoding: 'utf8' });
+      if (conv.status !== 0) {
+        fail(`${inputRel}: convert.mjs exits 0`, `exited ${conv.status}\n${conv.stdout}${conv.stderr}`);
+        continue;
+      }
+      pass(`${inputRel}: convert.mjs exits 0`);
+
+      if (!existsSync(cardPath)) { fail(`${inputRel}: convert.mjs writes a card`, `expected ${cardPath}`); continue; }
+      const r = run(cardPath);
+      if (r.code !== 0) fail(`${inputRel}: verify-traces.mjs exits 0`, `exited ${r.code} with [${r.codes.join(', ')}]`);
+      else pass(`${inputRel}: verify-traces.mjs exits 0`, 'real converter, real verifier, unseen input');
+    } finally {
+      rmSync(cardPath, { force: true });
+    }
   }
 }
 

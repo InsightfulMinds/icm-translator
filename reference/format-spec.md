@@ -1,8 +1,10 @@
 # Format spec — how a lesson card is written to disk
 
 `schema/lesson-card.v1.json` fixes *what* a card contains. This file fixes *how it is written*, so
-two runs that found the same things produce byte-identical files and a diff between two cards shows
-content drift only.
+two runs that found the same things produce files that are byte-identical except for
+`generated_utc` — that one field is read from the system clock at write time and is expected to
+differ run to run. Diff two cards after stripping that line and the remainder shows content drift
+only.
 
 ## The file
 

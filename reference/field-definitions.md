@@ -4,8 +4,10 @@ The machine-readable contract is `schema/lesson-card.v1.json`. This file is the 
 each field means, what goes in it, and — more useful — what a careless translator would put in it
 that must not go in it.
 
-Written 2026-09-19T13:38:23Z, before any converter code existed. That order is deliberate: a schema
-derived from whatever the converter happened to emit is not a contract, it is a description.
+Written 2026-09-19T13:38:23Z, before any converter code existed — an author-reported timestamp and
+ordering, not something provable from the files in this repo alone. The order is deliberate either
+way: a schema derived from whatever the converter happened to emit is not a contract, it is a
+description.
 
 ---
 
@@ -46,9 +48,10 @@ translator has no license to improve, correct, tidy, expand, infer or complete. 
 
 Card metadata, not extracted content.
 
-`schema` and `profile` are both the constant `lesson-card.v1`. They are separate fields because the
-engine is profile-driven: a later profile (`discovery-notes → SOW`) changes `profile` while the
-verifier and the `quote` invariant stay exactly as they are.
+`schema` and `profile` are both the constant `lesson-card.v1`. They are kept as separate fields on
+the theory that a later profile could change `profile` while the `quote` invariant stays the same —
+see the README's [Room to expand](../README.md#room-to-expand) for what that would actually require
+and what is not built yet.
 
 `generated_utc` is read from the system clock at write time, `YYYY-MM-DDTHH:MM:SSZ`.
 
@@ -73,7 +76,8 @@ A title the speaker actually stated, verbatim, with its span. Otherwise `not in 
 
 **The trap:** a published video has a title, and the filename suggests one, and the surrounding
 scrape metadata carries one. None of those are the input. Input 3 in this repo comes from a YouTube
-video titled *"The only MCP you will ever need."* — a title that appears nowhere in the transcript.
+video titled *"The only MCP you will ever need."* (MCP: Model Context Protocol) — a title that
+appears nowhere in the transcript.
 Its card says `not in source`, and that is the field working correctly.
 
 ## `speakers[]`
@@ -81,6 +85,12 @@ Its card says `not in source`, and that is the field working correctly.
 Each entry is a `name` quote plus an `evidence` quote — the span of the phrase that established who
 is speaking, such as a self-introduction. A capitalised word with no establishing phrase is not a
 speaker; it is at most an entity.
+
+**The verifier enforces this as byte containment, not just byte matching:** `name.span` must sit
+entirely inside `evidence.span` (`evidence.start <= name.start` and `name.end <= evidence.end`).
+Both quotes can independently byte-match real text in the input and still fail this — the fix for
+exactly the bypass where one speaker's real name quote was substituted onto a different speaker's
+real evidence quote, and both spans checked out on their own.
 
 **The trap, and it is the one the brief names explicitly:** *"a name spelled the way it usually is
 instead of the way it appeared."* Automatic transcription mangles names. Ours does — dictation in
@@ -100,6 +110,11 @@ sentences that were forty seconds apart.
 one **as given** — not a better one, not a corrected one, not one topped up from general knowledge
 about the product being described.
 
+**The verifier enforces proximity:** `definition.span` must start no earlier than `term.span` ends,
+and within a small calibrated byte gap (see "What the verifier cannot fully enforce" below for what
+this does and does not prove). A definition quoted verbatim from somewhere else entirely in the
+input — true on its own, but about something else — no longer passes just because its bytes match.
+
 ## `numbers[]`
 
 Every figure, its unit, its span.
@@ -108,6 +123,24 @@ Every figure, its unit, its span.
 appeared: `$5,000` is not `5000` and not `5,000 dollars`. `unit` is itself a span-backed quote, or
 `not in source` — units are the easiest place to smuggle an invention, because "per month" feels
 like formatting rather than a claim.
+
+**The verifier enforces adjacency, not just a byte match:** when `unit` is present, `unit.span` must
+start at or after `value.span` ends, separated by nothing but whitespace, within a small calibrated
+gap (5 bytes — see "What the verifier cannot fully enforce" below). A unit quoted verbatim from a
+different sentence's number no longer passes just because the bytes match some real unit somewhere.
+
+**`not in source` here means "the input did not state a unit adjacent to this figure," not "no unit
+exists that a human would associate with this figure."** The extractor recognises a fixed, narrow
+list of unit words directly after "a" or "per" (month/year/week/day/hour/site) plus a fixed list of
+bare plural units (dollars, percent, months, ..., people, times). A figure whose unit is stated in
+different wording that isn't on that list — a novel noun, a unit stated in a separate clause, an
+implied unit from context — will show `not in source` even though a human reading the transcript
+would say the unit is "in source." This was flagged directly: `$5,800 per site` originally showed
+`not in source` for its unit purely because "site" wasn't on the list; it has been added, but the
+underlying limitation (a fixed word list, not general language understanding) remains for any unit
+phrasing not on it. Do not read `not in source` on `numbers[].unit` as a guarantee that the input
+never expressed a unit for that figure — only that this extractor's fixed vocabulary didn't find one
+immediately adjacent to it.
 
 **A number with no span cannot ship.** This is the field where one drifted digit loses the comp
 outright, so it carries no unverified bytes at all. `negative fixture 04` drifts a digit.
@@ -120,6 +153,14 @@ People, tools and organisations, spelled as they appeared, with spans.
 deliberately fenced: it is `unknown` unless the input itself states the role, in which case `role`
 carries the span where it said so. No role span, no classification. This keeps the one non-quote
 field from becoming an invention channel.
+
+**The verifier enforces more than "a role span exists":** when `role` is present, it must also be
+*near* `name` — either `name.span` sits inside `role.span` (a self-introduction like "my name is
+Marco Salas" contains the name), or `role.span` starts shortly after `name.span` ends (a definition
+like "Dexter is a platform ..."), using the same calibrated gap as `definitions[]` above. Supplying
+some other true, real, span-backed claim from elsewhere in the card as the `role` — a claim that
+passes every other check on its own — no longer clears the classification fence just because it byte
+-matches something real; it has to actually be near the name it is supposed to classify.
 
 ## `steps[]`
 
@@ -147,17 +188,27 @@ Each entry is a span, its text, and a `reason` from a closed enum:
 
 A closed enum, so this stays a lookup rather than prose the reader has to trust.
 
-**The verifier does not take the card's word for this.** It recomputes the uncovered regions from
-the source and the card's own spans, and fails the card if an uncovered run at or above
-`coverage.unmapped_threshold_bytes` is not declared here. That is what makes the brief's *"a CRM
-note that silently omits the objection the prospect raised is worse than useless"* mechanically
-enforceable rather than a promise. `negative fixture 06` drops a passage and says nothing.
+**The verifier does not take the card's word for this, and it does not specifically read `unmapped[]`
+to check it either.** It recomputes which bytes are touched by *any* span anywhere in the card — a
+claim, a step, a number, an `unmapped[]` entry, anything shaped `{text, span}` — and fails the card if
+a run of real content at or above `coverage.unmapped_threshold_bytes` is left untouched by all of
+them. Declaring a gap in `unmapped[]` is one way to cover it, because its own span counts exactly like
+any other field's span; the check is symmetric across every field, not a lookup against the
+`unmapped[]` list specifically. What it does **not** verify is whether a declared entry's `reason` is
+the true one — enum membership is checked (see the table above), truthfulness against the content is
+not. That is still what makes the brief's CRM (customer-relationship-management) example — *"a CRM
+note that silently omits the objection the prospect raised is worse than useless"* — mechanically
+enforceable rather than a promise: nothing above the bar can go completely untouched, no matter which
+field is supposed to account for it. `negative fixture 06` drops a passage and declares nothing
+anywhere, leaving it with no covering span at all, which is what gets caught.
 
 ## `coverage`
 
-`total_bytes`, `covered_bytes`, `pct`, and the `unmapped_threshold_bytes` bar the card held itself
-to. All four are recomputable from the spans, and the verifier recomputes them. A card cannot assert
-a coverage number its own spans do not support.
+`total_bytes`, `covered_bytes` and `pct` are recomputed by the verifier from the card's own spans, so
+a card cannot assert a coverage number its spans do not support. `unmapped_threshold_bytes` — the bar
+a card holds itself to for declaring an uncovered run in `unmapped[]` — is not recomputed the same
+way: it is fixed by the profile, and the verifier checks the card's declared value for equality
+against that fixed number rather than deriving it from the spans.
 
 Overlapping spans are counted once — coverage is the size of the union of the spans, not their sum.
 
@@ -167,13 +218,56 @@ Overlapping spans are counted once — coverage is the size of the union of the 
 
 A card is verified when `checker/verify-traces.mjs` exits `0`, which requires all of:
 
-1. the input's sha256 matches `source.sha256`
-2. every field in `fieldOrder` is present, in order, with no extra fields
-3. every `quote` in the card byte-matches its span in the input
-4. no span starts or ends mid-word relative to the input
-5. `steps[]` spans strictly increase and `index` increments by 1
-6. every non-marker value is either a quote or declared metadata — nothing free-floating
-7. recomputed coverage matches the declared coverage
-8. every uncovered run at or above the threshold is declared in `unmapped[]`
+1. the card validates against the full JSON Schema (`reference/schema/lesson-card.v1.json`) — every
+   type, required field, closed enum, `additionalProperties` and union
+2. the input's sha256 matches `source.sha256`
+3. every field in `fieldOrder` is present, in order, with no extra fields
+4. every `quote` in the card byte-matches its span in the input
+5. no span starts or ends mid-word or mid-character relative to the input, deciding "word" on the
+   actual Unicode code point on each side of the cut (a digit next to a letter is mid-word; a digit
+   next to a symbol like `°` is not)
+6. `speakers[].name` is contained within its own `speakers[].evidence`
+7. `numbers[].unit`, when present, is immediately adjacent to its own `numbers[].value`
+8. `definitions[].definition` is near its own `definitions[].term`
+9. `entities[].role`, when present, is near its own `entities[].name`
+10. `steps[]` spans strictly increase and `index` increments by 1
+11. every non-marker value is either a quote or declared metadata — nothing free-floating
+12. recomputed coverage matches the declared coverage
+13. every run of real content at or above the profile's fixed threshold is touched by some span
+    somewhere in the card — declaring it in `unmapped[]` is the normal way to supply that span, but
+    the check is symmetric across every field (see "unmapped[]" above for what this does and does not
+    verify about a declared entry's reason)
 
 Exit `1` on any failure, with the expected and actual text printed at the first point they diverge.
+
+---
+
+## What the verifier cannot fully enforce
+
+Checks 6–9 above are proximity checks, calibrated against every shipped card and the control fixture
+(see `WP23-RELATIONS.md` for the measurement table) rather than tuned to catch one known attack. Be
+precise about what they do and do not prove:
+
+- **What they prove:** the two quotes involved are not just independently real — they are close
+  enough in the source, in the specific geometric relationship the field's definition describes
+  (containment for a speaker's name-in-evidence; forward adjacency for a number's unit, a
+  definition's body, or a self-stated role), that an unrelated substitution from elsewhere in the
+  input is rejected. This is what closes the bypass where a swapped-in quote was real and
+  individually verifiable but had nothing to do with the field it was placed in.
+- **What they do NOT prove:** byte proximity is a heuristic for "these two things are about each
+  other," not a semantic proof of it. This is not a hypothetical needing a pathological input to
+  reach — the shipped input already permits it. Input 4's `entities[0]` is `Thursday`, correctly
+  `kind: unknown` because no role is stated near it. Relabel it `kind: "person"` and set `role` to the
+  quote `"it quotes the same figure"`, which starts 5 bytes after `Thursday`'s span ends (well inside
+  the calibrated gap for `entities[].role`) but is an unrelated clause about a renewal email, not a
+  statement of anyone's role — the card still verifies. The gaps (5 bytes for
+  `numbers[].unit`, 60 bytes for `definitions[].definition` and `entities[].role`) were picked as the
+  loosest bound every real occurrence in the shipped data satisfies, with headroom for legitimate
+  variation in phrasing — not as a proof-theoretic bound. Nothing in this repo, or in JSON Schema,
+  can mechanically verify semantic relatedness between two spans; only their distance and byte
+  content.
+- **The residual "not in source" imprecision on `numbers[].unit`** (documented above, under
+  `numbers[]`) is a related but separate limitation: it is not about association between two present
+  quotes, but about the extractor's fixed unit-word vocabulary missing units stated in wording it
+  doesn't recognise. Adding "site" to that vocabulary fixed the one instance in the shipped inputs;
+  it does not make the vocabulary general.

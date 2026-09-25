@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-18-role-not-near-name",
+  "invention_class": "role-not-near-name",
+  "expect_codes": [
+    "ROLE_NOT_NEAR_NAME"
+  ],
+  "note": "entities[].role taken from an unrelated part of the input. Dexter's real role (\"a platform\", immediately after its name) is replaced with claims[3] (\"One member raised an objection about the price during the call.\"), a byte-real quote 232 bytes downstream that establishes nothing about what Dexter is. This is the bypass verify-traces.mjs's comment names directly: an unrelated existing claim, true on its own, supplied as an entity's role to clear KIND_WITHOUT_ROLE without actually classifying anything."
+}

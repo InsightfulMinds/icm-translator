@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-10-tampered-identity",
+  "invention_class": "tampered-identity",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "A tampered identity field: `generated_utc` set to a string that is not a valid UTC timestamp. `generated_utc` is file metadata about the card, not a claim extracted from the input, but the schema still pins its shape with a pattern — a malformed timestamp is exactly the kind of thing that should never silently pass through as \"close enough\"."
+}

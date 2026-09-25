@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-08-span-extra-property",
+  "invention_class": "span-extra-property",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "An extra property injected into a span object: claims[0].span gains a `sentiment` key. Nothing in the contract has ever asked a span to carry anything but start/end — `$defs.span` sets `additionalProperties: false` precisely so a span cannot become a place to stash an unverified label that rides along with a real citation."
+}

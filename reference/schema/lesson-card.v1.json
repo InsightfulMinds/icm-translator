@@ -36,6 +36,11 @@
     "coverage"
   ],
 
+  "unmappedThresholdBytes": 32,
+
+  "minimumCoveragePct": 85,
+  "minimumCoveragePctNote": "A SEPARATE, AGGREGATE gate on top of unmappedThresholdBytes. unmappedThresholdBytes only catches a single CONTIGUOUS uncovered run at or above 32 bytes; it does not catch loss spread across many runs each individually under that bar. This value is the loosest floor that clears every shipped card (cards/*.json: 97.97-99.10%) and fixtures/control/card.json (86.79%) with real headroom, while still catching a card that has silently shed a double-digit percentage of its input in small pieces (measured: trimming every claim in a shipped card by ~20 bytes at word boundaries drops 14.8% of the input and recomputes to 83.28%, below this floor). It is a floor, not a guarantee: a card that loses content in scattered runs that still sum to LESS than this percentage is not caught by either gate. See coverage's own description for the exact combined claim.",
+
   "$defs": {
     "absent": {
       "const": "not in source",
@@ -102,7 +107,7 @@
       "properties": {
         "file": {
           "type": "string",
-          "description": "Path to the input, relative to the repo root. This file ships in the repo so every span is re-checkable."
+          "description": "Path to the input, relative to the repo root. This file ships in the repo so every span is re-checkable. The verifier constrains this beyond the bare string type: it must resolve strictly inside the repo (no absolute path, no `..` traversal — SOURCE_FILE_ESCAPES_REPO), it must sit under `inputs/` or `fixtures/` (the only two directories this profile treats as holding citable transcript bytes — SOURCE_FILE_NOT_ALLOWED), and an `inputs/` path must be one of the files listed in `inputs/sha256sums.txt` (SOURCE_FILE_UNREGISTERED). A card whose own filename matches one of the registered inputs' basenames (e.g. a file living at `cards/04-pricing-objection.card.json`) is additionally bound to cite exactly that input (SOURCE_FILE_IDENTITY_MISMATCH), so a shipped card cannot be repointed at a different, uncontrolled file while keeping its name. This does NOT prove the named file is the CORRECT source for a card verified under an unrelated name or path — a card verified from outside that naming convention may still cite any real file under `fixtures/`, which is a disclosed residual gap, not a hidden one."
         },
         "sha256": {
           "type": "string",
@@ -111,7 +116,8 @@
         },
         "bytes": { "type": "integer", "minimum": 1 },
         "duration_seconds": {
-          "oneOf": [{ "type": "number", "minimum": 0 }, { "$ref": "#/$defs/absent" }]
+          "oneOf": [{ "type": "number", "minimum": 0 }, { "$ref": "#/$defs/absent" }],
+          "description": "Media duration in seconds, from the transcription metadata shipped in inputs/meta.json (summarised for humans in inputs/PROVENANCE.md), keyed by the input's basename. `not in source` when meta.json has no entry for this input. Sibling metadata, not a claim extracted from the transcript's own text — but it is NOT merely asserted: the verifier re-reads inputs/meta.json itself and checks this field against it exactly, so a fabricated or stale value fails with SOURCE_DURATION_MISMATCH."
         }
       }
     },
@@ -242,7 +248,7 @@
           }
         }
       },
-      "description": "What the schema could not hold. The verifier RECOMPUTES this set from the source rather than trusting the card: any stretch of input not covered by some span, above the declared threshold, must appear here. A silently dropped passage fails the card."
+      "description": "What the schema could not hold. The verifier RECOMPUTES this set from the source rather than trusting the card: any stretch of input not covered by some span, above the declared threshold, must appear here. Two independent, recomputed gates enforce this, and NEITHER is a general guarantee that nothing important disappeared: (1) unmappedThresholdBytes — no single CONTIGUOUS uncovered run may be at or above 32 bytes; (2) minimumCoveragePct — total covered bytes across the whole card may not fall below the profile's aggregate floor (see that top-level keyword), which exists precisely because (1) alone permits the same total loss spread across many runs each individually under 32 bytes. A dropped passage at or above the 32-byte bar, OR a combined loss that pushes total coverage below the aggregate floor, fails the card. Loss that stays under BOTH bars is, by construction, undetectable — that is a stated limit, not an oversight."
     },
 
     "coverage": {
@@ -257,7 +263,7 @@
         "unmapped_threshold_bytes": {
           "type": "integer",
           "minimum": 1,
-          "description": "An uncovered run of at least this many bytes must be declared in `unmapped[]`. Stated in the card so the reader can check the bar the card set for itself."
+          "description": "The lesson-card.v1 profile's fixed omission bar (see the top-level `unmappedThresholdBytes` keyword on this schema), restated here so a reader can see it without opening the schema. This is NOT a bar the card sets for itself: the verifier reads the real bar out of the schema, uses that for the omission scan regardless of what this field says, and separately checks that this field equals it — a card that stated a different number here fails with COVERAGE_THRESHOLD_NOT_PROFILE. A card cannot exempt itself from the omission gate by inflating this number."
         }
       }
     }

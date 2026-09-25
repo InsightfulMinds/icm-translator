@@ -11,7 +11,7 @@
 //
 // This file is NOT the verifier and NOT the converter. It only edits JSON.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -38,12 +38,18 @@ const NEGATIVES = [
   {
     dir: 'neg-02-invented-step',
     class: 'invented-next-step',
-    expect_codes: ['QUOTE_MISSING_SPAN'],
+    expect_codes: ['SCHEMA_INVALID'],
     note:
       'A next step nobody said. The fixture adds a fifth step, "Then schedule a follow-up call", with no ' +
       'span at all — which is what invention actually looks like when the author is honest enough not to ' +
-      'fake an offset. Content without a span is unverifiable by definition, so the contract rejects it ' +
-      'outright rather than letting it through as an unchecked string.',
+      'fake an offset. Content without a span is unverifiable by definition. This used to be caught ad hoc ' +
+      'by QUOTE_MISSING_SPAN inside verifyCard(), but the schema gate added in step 0 of verifyCard() now ' +
+      'catches it first: `$defs.quote.required` includes `span`, so a `quote` object with no `span` key ' +
+      'fails schema validation before the ad hoc check ever runs. Confirmed by running the real verifier ' +
+      '(2026-09-24): exactly one problem, `[SCHEMA_INVALID] steps[4].action.span: missing required ' +
+      'property \\`span\\`. That is the new gate working correctly, not a regression — verified here so a ' +
+      'future change that reopens the QUOTE_MISSING_SPAN path (e.g. loosening the schema) fails this ' +
+      'fixture instead of nothing.',
     mutate: (c) => {
       c.steps.push({ index: 5, action: { text: 'Then schedule a follow-up call' } });
     },
@@ -77,7 +83,7 @@ const NEGATIVES = [
   {
     dir: 'neg-05-neighbour-span',
     class: 'neighbour-span',
-    expect_codes: ['STEP_ORDER_NOT_INCREASING'],
+    expect_codes: ['STEP_ORDER_NOT_INCREASING', 'COVERAGE_BELOW_FLOOR'],
     note:
       'A span that points at the right text in the wrong place. "click continue" occurs twice in the ' +
       'transcript, at [162,176) and [227,241). Step 2 is moved to the second occurrence. THE BYTES STILL ' +
@@ -86,7 +92,9 @@ const NEGATIVES = [
       'This is the fixture worth studying; it is the one that proves the verifier is more than a string compare. ' +
       'Coverage is restated honestly (335 -> 321 bytes, 83.16%) because vacating [162,176) genuinely uncovers ' +
       'those bytes; leaving the old number would trip the coverage gate instead and the fixture would prove ' +
-      'nothing about ordering.',
+      'nothing about ordering. 83.16% is also below the lesson-card.v1 profile\'s aggregate coverage floor ' +
+      '(85%, WP6a), so COVERAGE_BELOW_FLOOR fires alongside STEP_ORDER_NOT_INCREASING — both are real, ' +
+      'independently true findings about this same mutated card, not a duplicate report of one problem.',
     mutate: (c) => {
       c.steps[1].action.span = { start: 227, end: 241 };
       c.coverage.covered_bytes = 321;
@@ -96,7 +104,7 @@ const NEGATIVES = [
   {
     dir: 'neg-06-dropped-objection',
     class: 'dropped-content',
-    expect_codes: ['UNMAPPED_OMISSION'],
+    expect_codes: ['UNMAPPED_OMISSION', 'COVERAGE_BELOW_FLOOR'],
     note:
       'A dropped objection with nothing in unmapped[]. The fixture removes the claim carrying "One member ' +
       'raised an objection about the price during the call." and does NOT declare it as unmapped. It also ' +
@@ -104,7 +112,9 @@ const NEGATIVES = [
       'the coverage gate and that would prove nothing. This stages the HARDER case: a dropper that covers ' +
       'its tracks. It still fails, because the verifier recomputes the uncovered regions from the source ' +
       'rather than reading the card\'s own unmapped list, and the resulting 66-byte hole is over the ' +
-      'declared 32-byte bar.',
+      'declared 32-byte bar. 70.47% is also well below the lesson-card.v1 profile\'s aggregate coverage ' +
+      'floor (85%, WP6a), so COVERAGE_BELOW_FLOOR fires alongside UNMAPPED_OMISSION — this single dropped ' +
+      'passage is large enough to trip both independent gates at once.',
     mutate: (c) => {
       const before = c.claims.length;
       c.claims = c.claims.filter(
@@ -115,13 +125,326 @@ const NEGATIVES = [
       c.coverage.pct = 70.47;
     },
   },
+
+  // ── the twelve bypasses the WP4a adversarial reviewer landed against the hardened verifier ──────
+  // Each of these stages an attack that was reported to actually get past an EARLIER version of the
+  // gates below. Every expect_codes value here was recorded by running the real verifier against the
+  // generated fixture and reading its actual output — never guessed. See WP4A-FIXTURES.md for the
+  // literal command transcripts.
+
+  {
+    dir: 'neg-07-bare-number-no-span',
+    class: 'bare-number-no-span',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      'An invented number smuggled into numbers[] as a bare JS value — not even wrapped in a {value, unit} ' +
+      'object, let alone a span. There is nothing to re-slice and nothing to trust; the schema\'s `items` ' +
+      'keyword on numbers demands an object with `value`/`unit`, so a bare number fails type checking before ' +
+      'anything else runs.',
+    mutate: (c) => {
+      c.numbers.push(42);
+    },
+  },
+  {
+    dir: 'neg-08-span-extra-property',
+    class: 'span-extra-property',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      'An extra property injected into a span object: claims[0].span gains a `sentiment` key. Nothing in ' +
+      'the contract has ever asked a span to carry anything but start/end — `$defs.span` sets ' +
+      '`additionalProperties: false` precisely so a span cannot become a place to stash an unverified label ' +
+      'that rides along with a real citation.',
+    mutate: (c) => {
+      c.claims[0].span.sentiment = 'positive';
+    },
+  },
+  {
+    dir: 'neg-09-source-extra-property',
+    class: 'source-extra-property',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      'An extra property injected into `source`: a `conclusion` field carrying invented prose. `source` is ' +
+      'metadata ABOUT the input file (file/sha256/bytes/duration_seconds) and `additionalProperties: false` ' +
+      'closes it, so a card cannot smuggle an unverifiable claim in under the one object every reader trusts ' +
+      'without checking spans.',
+    mutate: (c) => {
+      c.source.conclusion = 'The client signed up immediately after the call.';
+    },
+  },
+  {
+    dir: 'neg-10-tampered-identity',
+    class: 'tampered-identity',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      'A tampered identity field: `generated_utc` set to a string that is not a valid UTC timestamp. ' +
+      '`generated_utc` is file metadata about the card, not a claim extracted from the input, but the schema ' +
+      'still pins its shape with a pattern — a malformed timestamp is exactly the kind of thing that should ' +
+      'never silently pass through as "close enough".',
+    mutate: (c) => {
+      c.generated_utc = 'not-a-real-timestamp';
+    },
+  },
+  {
+    dir: 'neg-11-deleted-required-field',
+    class: 'deleted-required-field',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      'A deleted nested required field: numbers[0].value is removed entirely, leaving only `unit`. A number ' +
+      'with no value is not a smaller number, it is not a number at all — the schema requires both `value` ' +
+      'and `unit` on every numbers[] item, so deleting one is caught as a missing required property rather ' +
+      'than silently tolerated as an incomplete-but-valid entry.',
+    mutate: (c) => {
+      delete c.numbers[0].value;
+    },
+  },
+  {
+    dir: 'neg-12-empty-object-title',
+    class: 'empty-object-title',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      '`title` set to `{}` instead of a quote object or the absent marker. `title` is `quoteOrAbsent`, a ' +
+      'oneOf between `$defs.quote` (needs text+span) and `$defs.absent` (the literal "not in source") — an ' +
+      'empty object matches neither branch, so this is a oneOf failure with zero branches matched, not a ' +
+      'value that happens to look empty-but-harmless.',
+    mutate: (c) => {
+      c.title = {};
+    },
+  },
+  {
+    dir: 'neg-13-coverage-pct-non-number',
+    class: 'coverage-pct-non-number',
+    expect_codes: ['SCHEMA_INVALID'],
+    note:
+      '`coverage.pct` set to the string "high" instead of a number. Coverage is supposed to be a hard, ' +
+      'recomputable fact — a string standing in for it is not a lower-precision version of the fact, it is ' +
+      'no fact at all, and the schema\'s `type: number` on `coverage.pct` refuses it outright.',
+    mutate: (c) => {
+      c.coverage.pct = 'high';
+    },
+  },
+  {
+    dir: 'neg-14-coverage-threshold-override',
+    class: 'coverage-threshold-override',
+    expect_codes: ['COVERAGE_THRESHOLD_NOT_PROFILE'],
+    note:
+      '`coverage.unmapped_threshold_bytes` overridden from 32 to 999999 — the reviewer\'s attempt to exempt ' +
+      'the card from the omission scan entirely by inflating the bar it declares for itself. It does not ' +
+      'work even on its own terms: verify-traces.mjs reads the REAL bar out of the schema\'s top-level ' +
+      '`unmappedThresholdBytes` (32) and uses that for the scan regardless of what the card claims, then ' +
+      'separately checks that the card\'s restatement agrees with the profile. A card that disagrees fails ' +
+      'right there, before the scan it was trying to disable ever runs.',
+    mutate: (c) => {
+      c.coverage.unmapped_threshold_bytes = 999999;
+    },
+  },
+  {
+    dir: 'neg-15-speaker-name-swap',
+    class: 'speaker-name-swap',
+    expect_codes: ['SPEAKER_NAME_NOT_IN_EVIDENCE'],
+    note:
+      'The relationship attack: speakers[0].name is swapped for a DIFFERENT, individually-real quote — this ' +
+      'single-speaker transcript has no second person\'s name to steal, so the nearest equivalent is the ' +
+      'tool name "Dexter" — while the original establishing `evidence` span ("my name is Sara", [7,22)) is ' +
+      'left untouched. The new name quote is byte-real (span [63,69) really is "Dexter"), so SPAN_TEXT_MISMATCH ' +
+      'does not fire; it is caught only because check 5.1 requires the name span to sit INSIDE its own ' +
+      'evidence span, and [63,69) is nowhere near [7,22). Two individually-correct quotes that have nothing ' +
+      'to do with each other do not make a speaker.',
+    mutate: (c) => {
+      c.speakers[0].name = { text: 'Dexter', span: { start: 63, end: 69 } };
+    },
+  },
+  {
+    dir: 'neg-16-unit-not-adjacent',
+    class: 'unit-not-adjacent',
+    expect_codes: ['UNIT_NOT_ADJACENT'],
+    note:
+      'numbers[].unit quoted from far away from its value. The real "a month" unit is replaced with a ' +
+      'byte-real quote pulled from an entirely different sentence — the claims[0] span ("this is the ' +
+      'onboarding walkthrough") — chosen because it sits inside a region the control already covers, so this ' +
+      'mutation does not also disturb coverage. field-definitions.md requires a unit to be immediately after ' +
+      'its value; the verifier measures that gap directly rather than trusting that two individually real ' +
+      'quotes belong together.',
+    mutate: (c) => {
+      c.numbers[0].unit = { text: 'this is the onboarding walkthrough', span: { start: 27, end: 61 } };
+    },
+  },
+  {
+    dir: 'neg-17-definition-not-associated',
+    class: 'definition-not-associated',
+    expect_codes: ['DEFINITION_NOT_ASSOCIATED'],
+    note:
+      'definitions[].definition detached from its term. Dexter\'s real definition ("a platform that gives ' +
+      'you an AI agent", 4 bytes after the term) is replaced with claims[2] ("It costs $5,000 a month for ' +
+      'the top tier"), a byte-real quote about pricing that has nothing to do with what Dexter is, 190 bytes ' +
+      'downstream of the term. Reused from an already-covered span so the mutation stays isolated to the ' +
+      'one relationship being tested.',
+    mutate: (c) => {
+      c.definitions[0].definition = {
+        text: 'It costs $5,000 a month for the top tier',
+        span: { start: 259, end: 299 },
+      };
+    },
+  },
+  {
+    dir: 'neg-18-role-not-near-name',
+    class: 'role-not-near-name',
+    expect_codes: ['ROLE_NOT_NEAR_NAME'],
+    note:
+      'entities[].role taken from an unrelated part of the input. Dexter\'s real role ("a platform", ' +
+      'immediately after its name) is replaced with claims[3] ("One member raised an objection about the ' +
+      'price during the call."), a byte-real quote 232 bytes downstream that establishes nothing about what ' +
+      'Dexter is. This is the bypass verify-traces.mjs\'s comment names directly: an unrelated existing claim, ' +
+      'true on its own, supplied as an entity\'s role to clear KIND_WITHOUT_ROLE without actually classifying ' +
+      'anything.',
+    mutate: (c) => {
+      c.entities[0].role = {
+        text: 'One member raised an objection about the price during the call.',
+        span: { start: 301, end: 364 },
+      };
+    },
+  },
+
+  // ── WP6a: property-level bypasses a second, independent premortem found against the hardened ────
+  // verifier above. Each of these was reproduced against the real verifier BEFORE the corresponding
+  // fix (recorded here, and in WP6A-PROPERTIES.md, as an actual observed exit-0 bypass) and AFTER
+  // (recorded as the actual observed problem code) — never guessed.
+
+  {
+    dir: 'neg-19-aggregate-omission',
+    class: 'aggregate-omission',
+    expect_codes: ['COVERAGE_BELOW_FLOOR'],
+    note:
+      'Distributed sub-threshold trimming defeats the PER-RUN omission gate by construction: no single ' +
+      'trim reaches the 32-byte bar, so UNMAPPED_OMISSION never fires, even though real content is gone. ' +
+      'This fixture trims claims[3] ("One member raised an objection about the price during the call.") ' +
+      'from the end at a word boundary, leaving "One member raised an objection about the price" — a ' +
+      '17-byte cut, well under the 32-byte bar, and it merges with the fixture\'s own pre-existing 1-byte ' +
+      'gap before unmapped[1] into one 18-byte run (still under the bar, confirmed by measuring every run ' +
+      'the mutated card leaves uncovered: max 18 bytes). Coverage is restated honestly (335 -> 318 bytes, ' +
+      '82.38%). Before the WP6a fix this verified clean (0 problems, exit 0) because nothing checked the ' +
+      'AGGREGATE total. After the fix, the recomputed 82.38% is below the lesson-card.v1 profile\'s ' +
+      'aggregate coverage floor (85%), so COVERAGE_BELOW_FLOOR fires — a check on the TOTAL, independent ' +
+      'of any single run\'s size.',
+    mutate: (c) => {
+      c.claims[3].text = 'One member raised an objection about the price';
+      c.claims[3].span = { start: 301, end: 347 };
+      c.coverage.covered_bytes = 318;
+      c.coverage.pct = 82.38;
+    },
+  },
+  {
+    dir: 'neg-21-fabricated-duration',
+    class: 'fabricated-duration',
+    expect_codes: ['SOURCE_DURATION_MISMATCH'],
+    note:
+      'source.duration_seconds set to a fabricated figure (987654321) the transcript never stated and ' +
+      'inputs/meta.json never recorded. The schema\'s oneOf only ever checked the TYPE (number or "not in ' +
+      'source"), never the VALUE, so before the WP6a fix any non-negative number verified clean — a card ' +
+      'could claim any duration for any input. After the fix, verify-traces.mjs re-reads inputs/meta.json ' +
+      '(an input artifact, not the converter) and checks the exact value: this fixture\'s source is ' +
+      'fixtures/fixture-transcript.txt, which has no entry in inputs/meta.json at all, so the only correct ' +
+      'value is "not in source" — anything else, including a fabricated number, now fails with ' +
+      'SOURCE_DURATION_MISMATCH.',
+    mutate: (c) => {
+      c.source.duration_seconds = 987654321;
+    },
+  },
+  {
+    dir: 'neg-22-source-file-escape',
+    class: 'source-file-escape',
+    expect_codes: ['SOURCE_FILE_ESCAPES_REPO'],
+    note:
+      'source.file set to a `..`-traversal string that resolves outside the repo entirely. Before the ' +
+      'WP6a fix, source.file was never constrained at all — verified live: a copy of a real shipped ' +
+      'transcript placed at an ABSOLUTE path outside the repo (a real reproduction with matching sha256, ' +
+      'not staged here) verified with 0 problems, exit 0, because the verifier only ever asked "does this ' +
+      'file exist and match the given hash", never "is this file inside the repo the reader was handed". ' +
+      'This fixture stages the same shape of attack with a plain, deterministic target so it does not ' +
+      'depend on what happens to exist outside the repo on any given machine: the fix rejects the path on ' +
+      'sight, before ever calling existsSync on it, so SOURCE_FILE_ESCAPES_REPO fires regardless of ' +
+      'whether anything real sits at the traversal target. See WP6A-PROPERTIES.md for the live ' +
+      'matching-bytes reproduction that actually bypassed the pre-fix verifier.',
+    mutate: (c) => {
+      c.source.file = '../../../../../../../etc/wp6a-does-not-exist-probe.txt';
+    },
+  },
+  {
+    dir: 'neg-23-source-file-unregistered',
+    class: 'source-file-unregistered',
+    expect_codes: ['SOURCE_FILE_UNREGISTERED'],
+    note:
+      'source.file repointed at an inputs/*.txt path that is not listed in inputs/sha256sums.txt — the ' +
+      'shape of a smuggled, unpublished input being cited as if it were one of the four registered ' +
+      'transcripts. This one did NOT bypass the pre-fix verifier in a reproducible way (a file that does ' +
+      'not exist already failed with SOURCE_MISSING, and this profile does not let a card add a new file ' +
+      'under inputs/ to prove the smuggled-and-existing case) — it is disclosed here as additional, real ' +
+      'hardening rather than as a sixth closed bypass: inputs/ membership is now checked explicitly ' +
+      'instead of being an accident of whether existsSync happens to succeed.',
+    mutate: (c) => {
+      c.source.file = 'inputs/not-a-real-input.txt';
+    },
+  },
+  {
+    dir: 'neg-24-reversed-step-order',
+    class: 'reversed-step-order',
+    expect_codes: ['STEP_ORDER_NOT_INCREASING'],
+    note:
+      'Spans increase but the narrated order is reversed — the shape STEP_ORDER_NOT_INCREASING\'s old ' +
+      '`start <= prev` test could not see. This fixture replaces the two real steps needed to demonstrate ' +
+      'it with two short, byte-real quotes that actually cross in the source: "is" occurs at bytes 15, 32, ' +
+      '70, 128; "and" occurs once, at byte 23. Step 1 cites "and"@23 (its only occurrence, so nothing about ' +
+      'step 1 alone looks wrong) and step 2 cites "is"@70 — spans 23 < 70, so the monotonic check passes. ' +
+      'But "is" ALSO occurs at byte 15, before step 1\'s own span even starts, which is what a forward ' +
+      'narration cannot produce: step 2\'s wording already existed in the source before step 1\'s chosen ' +
+      'occurrence. The other four real steps are preserved as unmapped[] entries (reason ' +
+      '`no-field-for-this-content`) so removing them from steps[] does not also change coverage or trip ' +
+      'the omission gates — this fixture isolates the ordering property alone (coverage recomputes to ' +
+      '338/386 = 87.56%, comfortably above the aggregate floor; the largest uncovered run is 20 bytes, ' +
+      'under the 32-byte bar). Before the WP6a fix this verified clean, exit 0.',
+    mutate: (c) => {
+      const oldSteps = c.steps;
+      for (const st of oldSteps) c.unmapped.push({ text: st.action.text, span: st.action.span, reason: 'no-field-for-this-content' });
+      c.unmapped.sort((a, b) => a.span.start - b.span.start);
+      c.steps = [
+        { index: 1, action: { text: 'and', span: { start: 23, end: 26 } } },
+        { index: 2, action: { text: 'is', span: { start: 70, end: 72 } } },
+      ];
+      c.coverage.covered_bytes = 338;
+      c.coverage.pct = 87.56;
+    },
+  },
+  {
+    dir: 'neg-20-duplicate-key',
+    class: 'duplicate-key',
+    expect_codes: ['DUPLICATE_KEY'],
+    note:
+      'A fabricated `"title"` key inserted before the real one, at the SAME object level (root). ' +
+      'JSON.parse silently keeps only the LAST value, so before the WP6a fix the parsed card was byte-for-' +
+      'byte identical to the control\'s — the invented sentence is invisible to any check that only looks ' +
+      'at the parsed object, even though it sits in the file in plain text. This is the one negative whose ' +
+      'mutation is INVISIBLE at the parsed-JSON level by construction (findDuplicateKeys() runs on the raw ' +
+      'text before JSON.parse ever collapses it), so it is excluded from the generic "control plus one ' +
+      'parsed-key mutation" self-test below and checked separately: identical parsed object, different raw ' +
+      'bytes, and a real, observed DUPLICATE_KEY.',
+    mutate: () => {}, // the mutation is not at the object level — see postText.
+    postText: (text) => {
+      const marker = '"title": "not in source",';
+      if (!text.includes(marker)) throw new Error('neg-20: title line not found in control text');
+      return text.replace(marker, `"title": "How To Defraud The Board In Four Easy Steps",\n  ${marker}`);
+    },
+  },
 ];
 
 let n = 0;
 for (const neg of NEGATIVES) {
   const card = control();
   neg.mutate(card);
-  writeFileSync(join(HERE, neg.dir, 'card.json'), JSON.stringify(card, null, 2) + '\n');
+  mkdirSync(join(HERE, neg.dir), { recursive: true });
+  // postText: for the one negative (neg-20) whose mutation lives in the raw bytes rather than the
+  // parsed object — a duplicate JSON key is, by construction, invisible once JSON.parse has kept
+  // only the last value, so it cannot be expressed as an edit to the in-memory `card`.
+  const text = neg.postText ? neg.postText(JSON.stringify(card, null, 2) + '\n') : JSON.stringify(card, null, 2) + '\n';
+  writeFileSync(join(HERE, neg.dir, 'card.json'), text);
   writeFileSync(
     join(HERE, neg.dir, 'EXPECT.json'),
     JSON.stringify(

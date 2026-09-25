@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-13-coverage-pct-non-number",
+  "invention_class": "coverage-pct-non-number",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "`coverage.pct` set to the string \"high\" instead of a number. Coverage is supposed to be a hard, recomputable fact — a string standing in for it is not a lower-precision version of the fact, it is no fact at all, and the schema's `type: number` on `coverage.pct` refuses it outright."
+}

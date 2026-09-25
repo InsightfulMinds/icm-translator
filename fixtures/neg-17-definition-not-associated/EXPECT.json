@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-17-definition-not-associated",
+  "invention_class": "definition-not-associated",
+  "expect_codes": [
+    "DEFINITION_NOT_ASSOCIATED"
+  ],
+  "note": "definitions[].definition detached from its term. Dexter's real definition (\"a platform that gives you an AI agent\", 4 bytes after the term) is replaced with claims[2] (\"It costs $5,000 a month for the top tier\"), a byte-real quote about pricing that has nothing to do with what Dexter is, 190 bytes downstream of the term. Reused from an already-covered span so the mutation stays isolated to the one relationship being tested."
+}

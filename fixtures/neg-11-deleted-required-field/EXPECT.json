@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-11-deleted-required-field",
+  "invention_class": "deleted-required-field",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "A deleted nested required field: numbers[0].value is removed entirely, leaving only `unit`. A number with no value is not a smaller number, it is not a number at all — the schema requires both `value` and `unit` on every numbers[] item, so deleting one is caught as a missing required property rather than silently tolerated as an incomplete-but-valid entry."
+}

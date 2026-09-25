@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-14-coverage-threshold-override",
+  "invention_class": "coverage-threshold-override",
+  "expect_codes": [
+    "COVERAGE_THRESHOLD_NOT_PROFILE"
+  ],
+  "note": "`coverage.unmapped_threshold_bytes` overridden from 32 to 999999 — the reviewer's attempt to exempt the card from the omission scan entirely by inflating the bar it declares for itself. It does not work even on its own terms: verify-traces.mjs reads the REAL bar out of the schema's top-level `unmappedThresholdBytes` (32) and uses that for the scan regardless of what the card claims, then separately checks that the card's restatement agrees with the profile. A card that disagrees fails right there, before the scan it was trying to disable ever runs."
+}

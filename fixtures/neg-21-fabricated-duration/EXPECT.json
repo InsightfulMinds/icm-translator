@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-21-fabricated-duration",
+  "invention_class": "fabricated-duration",
+  "expect_codes": [
+    "SOURCE_DURATION_MISMATCH"
+  ],
+  "note": "source.duration_seconds set to a fabricated figure (987654321) the transcript never stated and inputs/meta.json never recorded. The schema's oneOf only ever checked the TYPE (number or \"not in source\"), never the VALUE, so before the WP6a fix any non-negative number verified clean — a card could claim any duration for any input. After the fix, verify-traces.mjs re-reads inputs/meta.json (an input artifact, not the converter) and checks the exact value: this fixture's source is fixtures/fixture-transcript.txt, which has no entry in inputs/meta.json at all, so the only correct value is \"not in source\" — anything else, including a fabricated number, now fails with SOURCE_DURATION_MISMATCH."
+}

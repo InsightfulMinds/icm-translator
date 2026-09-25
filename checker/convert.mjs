@@ -197,7 +197,11 @@ function convert(inputRel) {
     while ((nm = nre.exec(s.text)) !== null) {
       const vs = s.cs + nm.index, ve = vs + nm[0].length;
       const after = text.slice(ve, ve + 40);
-      const um = /^\s+((?:a|per)\s+(?:month|year|week|day|hour)|dollars|percent|months|years|weeks|days|hours|minutes|seconds|members|people|times)\b/di.exec(after);
+      // "site" joins the "a/per <noun>" list alongside the time-interval nouns: a transcript that
+      // says "$5,800 per site" is stating that unit as plainly as "$5,000 a month" states its own,
+      // and leaving it unextracted made `not in source` mean "the extractor doesn't support this"
+      // rather than its documented meaning, "the input did not state it" (see field-definitions.md).
+      const um = /^\s+((?:a|per)\s+(?:month|year|week|day|hour|site)|dollars|percent|months|years|weeks|days|hours|minutes|seconds|members|people|times)\b/di.exec(after);
       numbers.push({ value: cut(vs, ve), unit: um ? cut(ve + um.indices[1][0], ve + um.indices[1][1]) : ABSENT });
     }
   }
@@ -205,9 +209,18 @@ function convert(inputRel) {
   // 6 · entities — a run of capitalised tokens, recorded once per surface form, at the first
   //     occurrence that is NOT sentence-initial. Sentence-initial capitalisation carries no
   //     information about whether a word is a name, so it is not evidence.
+  //
+  //     A match is required to start AND end on a word boundary (not glued to a letter, digit or
+  //     underscore on either side). Without that, "Open iPhone settings." matched "Phone" starting
+  //     mid-word, and "Open Foo_Bar settings." matched "Bar" starting right after the underscore —
+  //     both real bytes, both rejected by verify-traces.mjs's SPAN_WORD_BOUNDARY check, which is
+  //     exactly the kind of internal contradiction (one half of the repo emits what the other half
+  //     calls invalid) this fixes. The boundary requirement means a capitalised run fused to
+  //     surrounding letters is either taken whole or — when there is no whole capitalised token to
+  //     take, as with "iPhone" and "Foo_Bar" — not taken at all, rather than taken as a fragment.
   {
     const sentStarts = new Set(sents.map((s) => s.cs));
-    const re = /[A-Z][\p{L}\p{N}'’-]*(?:\s+[A-Z][\p{L}\p{N}'’-]*)*/gu;
+    const re = /(?<![\p{L}\p{N}_])[A-Z][\p{L}\p{N}'’-]*(?:\s+[A-Z][\p{L}\p{N}'’-]*)*(?![\p{L}\p{N}_])/gu;
     let m;
     while ((m = re.exec(text)) !== null) {
       const form = m[0];

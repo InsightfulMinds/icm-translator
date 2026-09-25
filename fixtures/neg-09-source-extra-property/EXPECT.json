@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-09-source-extra-property",
+  "invention_class": "source-extra-property",
+  "expect_codes": [
+    "SCHEMA_INVALID"
+  ],
+  "note": "An extra property injected into `source`: a `conclusion` field carrying invented prose. `source` is metadata ABOUT the input file (file/sha256/bytes/duration_seconds) and `additionalProperties: false` closes it, so a card cannot smuggle an unverifiable claim in under the one object every reader trusts without checking spans."
+}

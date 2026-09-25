@@ -2,7 +2,7 @@
   "fixture": "neg-02-invented-step",
   "invention_class": "invented-next-step",
   "expect_codes": [
-    "QUOTE_MISSING_SPAN"
+    "SCHEMA_INVALID"
   ],
-  "note": "A next step nobody said. The fixture adds a fifth step, \"Then schedule a follow-up call\", with no span at all — which is what invention actually looks like when the author is honest enough not to fake an offset. Content without a span is unverifiable by definition, so the contract rejects it outright rather than letting it through as an unchecked string."
+  "note": "A next step nobody said. The fixture adds a fifth step, \"Then schedule a follow-up call\", with no span at all — which is what invention actually looks like when the author is honest enough not to fake an offset. Content without a span is unverifiable by definition. This used to be caught ad hoc by QUOTE_MISSING_SPAN inside verifyCard(), but the schema gate added in step 0 of verifyCard() now catches it first: `$defs.quote.required` includes `span`, so a `quote` object with no `span` key fails schema validation before the ad hoc check ever runs. Confirmed by running the real verifier (2026-09-24): exactly one problem, `[SCHEMA_INVALID] steps[4].action.span: missing required property \\`span\\`. That is the new gate working correctly, not a regression — verified here so a future change that reopens the QUOTE_MISSING_SPAN path (e.g. loosening the schema) fails this fixture instead of nothing."
 }

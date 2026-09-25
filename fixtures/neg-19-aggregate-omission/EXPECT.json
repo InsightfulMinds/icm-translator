@@ -1,0 +1,8 @@
+{
+  "fixture": "neg-19-aggregate-omission",
+  "invention_class": "aggregate-omission",
+  "expect_codes": [
+    "COVERAGE_BELOW_FLOOR"
+  ],
+  "note": "Distributed sub-threshold trimming defeats the PER-RUN omission gate by construction: no single trim reaches the 32-byte bar, so UNMAPPED_OMISSION never fires, even though real content is gone. This fixture trims claims[3] (\"One member raised an objection about the price during the call.\") from the end at a word boundary, leaving \"One member raised an objection about the price\" — a 17-byte cut, well under the 32-byte bar, and it merges with the fixture's own pre-existing 1-byte gap before unmapped[1] into one 18-byte run (still under the bar, confirmed by measuring every run the mutated card leaves uncovered: max 18 bytes). Coverage is restated honestly (335 -> 318 bytes, 82.38%). Before the WP6a fix this verified clean (0 problems, exit 0) because nothing checked the AGGREGATE total. After the fix, the recomputed 82.38% is below the lesson-card.v1 profile's aggregate coverage floor (85%), so COVERAGE_BELOW_FLOOR fires — a check on the TOTAL, independent of any single run's size."
+}

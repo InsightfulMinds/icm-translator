@@ -1,7 +1,7 @@
 {
   "schema": "lesson-card.v1",
   "profile": "lesson-card.v1",
-  "generated_utc": "2026-09-20T05:14:49Z",
+  "generated_utc": "2026-09-25T04:29:43Z",
   "source": {
     "file": "inputs/04-pricing-objection.txt",
     "sha256": "32f1fb1ba10b4d423ff83f4a23f3db1fe8faed22a13176444cd4ebc817e34460",
@@ -149,7 +149,13 @@
           "end": 706
         }
       },
-      "unit": "not in source"
+      "unit": {
+        "text": "per site",
+        "span": {
+          "start": 707,
+          "end": 715
+        }
+      }
     },
     {
       "value": {

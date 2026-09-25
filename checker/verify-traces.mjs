@@ -18,14 +18,21 @@
 // Claude reading `rules.md` are checked by exactly the same code, with no way for this file to tell
 // which one it is looking at.
 //
-// This is NOT a general JSON Schema validator — it implements the specific structural checks the
-// contract names, and it reads fieldOrder and the closed enums OUT of the schema file so that
-// reference/schema/lesson-card.v1.json is genuinely load-bearing rather than decorative.
+// This DOES now run a general JSON Schema validator (checker/schema-validate.mjs) against the full
+// contract, as the very first gate in verifyCard() — see step 0 below. That validator has no
+// knowledge of this file or of convert.mjs; it only knows JSON Schema keywords. What THIS file adds
+// on top is everything a schema literally cannot express: byte-for-byte span re-slicing against the
+// real input, word-boundary checks, recomputed coverage and recomputed omissions, step ordering
+// (the neighbour-span attack), the entities kind/role fence, and the profile's fixed omission bar.
+// reference/schema/lesson-card.v1.json is genuinely load-bearing on both counts now: schema-validate
+// enforces its structure, and this file reads fieldOrder, unmappedThresholdBytes and the closed
+// enums OUT of it.
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { validate as validateSchema } from './schema-validate.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SCHEMA_PATH = join(ROOT, 'reference/schema/lesson-card.v1.json');
@@ -40,6 +47,45 @@ const ABSENT = SCHEMA.$defs.absent.const;
 const FIELD_ORDER = SCHEMA.fieldOrder;
 const KIND_ENUM = SCHEMA.properties.entities.items.properties.kind.enum;
 const REASON_ENUM = SCHEMA.properties.unmapped.items.properties.reason.enum;
+// The omission bar is a property of the PROFILE, not of any one card — see the schema's top-level
+// `unmappedThresholdBytes` keyword and the description on coverage.unmapped_threshold_bytes.
+const PROFILE_THRESHOLD_BYTES = SCHEMA.unmappedThresholdBytes;
+if (!Number.isInteger(PROFILE_THRESHOLD_BYTES) || PROFILE_THRESHOLD_BYTES < 1) {
+  console.error(`FATAL: schema's unmappedThresholdBytes is missing or invalid: ${JSON.stringify(PROFILE_THRESHOLD_BYTES)}`);
+  process.exit(1);
+}
+// The aggregate omission floor — see the schema's `minimumCoveragePct` keyword and its note for
+// why this exists alongside PROFILE_THRESHOLD_BYTES rather than instead of it: the per-run bar
+// above only ever looks at ONE contiguous uncovered run at a time, so a card that sheds the same
+// total number of bytes spread across many runs, each individually under that bar, sails through
+// it. This is a SEPARATE, ALSO-recomputed check on the total.
+const MIN_COVERAGE_PCT = SCHEMA.minimumCoveragePct;
+if (typeof MIN_COVERAGE_PCT !== 'number' || MIN_COVERAGE_PCT < 0 || MIN_COVERAGE_PCT > 100) {
+  console.error(`FATAL: schema's minimumCoveragePct is missing or invalid: ${JSON.stringify(MIN_COVERAGE_PCT)}`);
+  process.exit(1);
+}
+
+// ── source.file provenance data, read from the shipped inputs themselves ──────────────────────────
+// Neither of these is the converter: sha256sums.txt and meta.json are INPUT ARTIFACTS (provenance
+// about the shipped transcripts), not code, so reading them here does not compromise this file's
+// independence from checker/convert.mjs — convert.mjs happens to read the same two files, but this
+// file does not import convert.mjs or anything it produces, and would read the same bytes even if
+// convert.mjs did not exist.
+const SHA256SUMS_PATH = join(ROOT, 'inputs/sha256sums.txt');
+const REGISTERED_INPUTS = new Set();
+if (existsSync(SHA256SUMS_PATH)) {
+  for (const line of readFileSync(SHA256SUMS_PATH, 'utf8').split('\n')) {
+    const m = /^[0-9a-f]{64}\s+(\S+)/.exec(line.trim());
+    if (m) REGISTERED_INPUTS.add(m[1]);
+  }
+}
+// basename-without-extension -> the one inputs/ path a card of that name is bound to. Built only
+// from the registered set above, so it can never name a file that is not also REGISTERED_INPUTS.
+const EXPECTED_SOURCE_BY_BASENAME = new Map();
+for (const p of REGISTERED_INPUTS) EXPECTED_SOURCE_BY_BASENAME.set(basename(p).replace(/\.txt$/, ''), p);
+
+const META_PATH = join(ROOT, 'inputs/meta.json');
+const INPUT_META = existsSync(META_PATH) ? JSON.parse(readFileSync(META_PATH, 'utf8')) : {};
 
 // Literal strings are allowed only at these paths. Everything else that is a bare string must be
 // the `text` of a quote or the absent marker — otherwise it is unverifiable prose sitting in the
@@ -67,24 +113,180 @@ function window_(want, got) {
   return { at: i, want: cut(want), got: cut(got) };
 }
 
-// A byte that can be part of a word. Non-ASCII bytes count as word bytes: that is the conservative
-// direction, because it makes the boundary check stricter rather than looser.
-const isWordByte = (b) =>
-  b === undefined ? false : (b >= 0x30 && b <= 0x39) || (b >= 0x41 && b <= 0x5a) || (b >= 0x61 && b <= 0x7a) || b === 0x5f || b >= 0x80;
+// A byte that can be part of a word, for the (still-byte-level) UTF-8 continuation check below.
 const isContinuationByte = (b) => b !== undefined && b >= 0x80 && b <= 0xbf;
 
+// Whether a full Unicode code point counts as "word" for boundary purposes: letters, numbers,
+// combining marks, and underscore (kept for parity with the old ASCII `\w`). This used to be a
+// per-BYTE test that treated every byte >= 0x80 as a word byte — which could not tell a letter from
+// a symbol, so "20" immediately followed by "°" (U+00B0 DEGREE SIGN, category So — a symbol, not a
+// letter) was reported as a mid-word cut. Deciding on the actual Unicode code point fixes that
+// without loosening the ASCII case at all: a genuine mid-word cut (a letter glued to a letter, a
+// digit glued to a digit or an underscore) is still caught exactly as before.
+const isWordCodePoint = (cp) => cp === 0x5f || /^[\p{L}\p{N}\p{M}]$/u.test(String.fromCodePoint(cp));
+
+// Map every byte offset in `buf` to the Unicode code point whose UTF-8 encoding covers that byte,
+// computed once per input. Span arithmetic elsewhere in this file stays entirely in bytes — this
+// table only answers "what character is at/around this byte" for the boundary check.
+function byteToCodepoint(buf) {
+  const text = buf.toString('utf8');
+  const table = new Int32Array(buf.length);
+  let b = 0;
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    const len = Buffer.byteLength(ch, 'utf8');
+    for (let k = 0; k < len; k++) table[b + k] = cp;
+    b += len;
+  }
+  return table;
+}
+
 const sha256 = (buf) => createHash('sha256').update(buf).digest('hex');
+
+// A card whose keys repeat within the same object parses fine — JSON.parse keeps the LAST value —
+// but the file a human opens still visibly contains whatever the FIRST (shadowed) value was. This
+// scans the raw text with a small hand-rolled JSON tokenizer (not JSON.parse, which cannot see a
+// duplicate once it has collapsed it) and reports every key that appears more than once WITHIN THE
+// SAME object literal. It must not flag legitimate repeats ACROSS different objects — every card
+// repeats `text`, `span`, `start` dozens of times, once per quote, and none of that is a problem.
+// Throws on malformed JSON; the caller treats that as "let JSON.parse produce the real error".
+function findDuplicateKeys(text) {
+  const dups = [];
+  const n = text.length;
+  let i = 0;
+
+  function isWs(c) { return c === ' ' || c === '\t' || c === '\n' || c === '\r'; }
+  function skipWs() { while (i < n && isWs(text[i])) i++; }
+
+  function parseString() {
+    const start = i;
+    i++; // opening quote
+    while (i < n) {
+      const c = text[i];
+      if (c === '\\') { i += 2; continue; }
+      if (c === '"') { i++; return text.slice(start + 1, i - 1); }
+      i++;
+    }
+    throw new Error('unterminated string');
+  }
+
+  function parseValue(pathStr) {
+    skipWs();
+    const c = text[i];
+    if (c === '{') return parseObject(pathStr);
+    if (c === '[') return parseArray(pathStr);
+    if (c === '"') return void parseString();
+    if (c === '-' || (c >= '0' && c <= '9')) { i++; while (i < n && /[0-9eE+.\-]/.test(text[i])) i++; return; }
+    for (const lit of ['true', 'false', 'null']) {
+      if (text.startsWith(lit, i)) { i += lit.length; return; }
+    }
+    throw new Error(`unexpected character '${c}' at ${i}`);
+  }
+
+  function parseObject(pathStr) {
+    i++; // {
+    const seen = new Map();
+    skipWs();
+    if (text[i] === '}') { i++; return; }
+    while (true) {
+      skipWs();
+      if (text[i] !== '"') throw new Error(`expected key string at ${i}`);
+      const key = parseString();
+      const count = (seen.get(key) || 0) + 1;
+      seen.set(key, count);
+      if (count > 1) dups.push({ path: pathStr || '(root)', key, count });
+      skipWs();
+      if (text[i] !== ':') throw new Error(`expected ':' at ${i}`);
+      i++;
+      parseValue(pathStr ? `${pathStr}.${key}` : key);
+      skipWs();
+      if (text[i] === ',') { i++; continue; }
+      if (text[i] === '}') { i++; break; }
+      throw new Error(`expected ',' or '}' at ${i}`);
+    }
+  }
+
+  function parseArray(pathStr) {
+    i++; // [
+    skipWs();
+    if (text[i] === ']') { i++; return; }
+    let idx = 0;
+    while (true) {
+      parseValue(`${pathStr}[${idx++}]`);
+      skipWs();
+      if (text[i] === ',') { i++; continue; }
+      if (text[i] === ']') { i++; break; }
+      throw new Error(`expected ',' or ']' at ${i}`);
+    }
+  }
+
+  skipWs();
+  parseValue('');
+  return dups;
+}
+
+// ── calibrated proximity thresholds ────────────────────────────────────────────────────────────
+// Matching bytes alone do not establish that two quotes are actually about each other — a card can
+// carry two individually-real quotes that have nothing to do with one another. These thresholds
+// were measured against every shipped card (cards/*.json) plus fixtures/control/card.json on
+// 2026-09-24 (see WP23-RELATIONS.md for the full table) and picked as the loosest bound that every
+// legitimate occurrence in that data satisfies, with headroom — not tuned to reject one attack.
+//
+//   numbers[].unit immediately after numbers[].value: both real occurrences measured a 1-byte gap
+//   (a single separating space). 5 bytes allows a little slack for extra whitespace while staying
+//   far below the length of an unrelated quote pulled from elsewhere.
+const UNIT_MAX_GAP_BYTES = 5;
+//   definitions[].definition after definitions[].term: the two real occurrences measured gaps of 4
+//   and 11 bytes (" is " and ", which is "). 60 bytes is roughly 5x the observed maximum — enough
+//   room for a longer natural-language connective phrase a hand-authored card might use, while
+//   staying well under the length of a typical sentence in these transcripts.
+const ASSOCIATION_MAX_GAP_BYTES = 60;
 
 // ── the per-card check ──────────────────────────────────────────────────────────────────────────
 function verifyCard(cardPath) {
   const problems = [];
   const P = (code, why, extra = {}) => problems.push({ code, why, ...extra });
 
+  let rawText;
+  try {
+    rawText = readFileSync(cardPath, 'utf8');
+  } catch (e) {
+    return [{ code: 'CARD_UNPARSEABLE', why: `cannot read ${cardPath}: ${e.message}` }];
+  }
+
+  // 0a · duplicate keys, checked on the RAW TEXT before JSON.parse collapses them. If the scanner
+  //      itself cannot make sense of the text, that is a parse problem, not a duplicate-key
+  //      problem — fall through and let JSON.parse below produce the real error message.
+  try {
+    const dups = findDuplicateKeys(rawText);
+    if (dups.length > 0) {
+      return dups.map((d) => ({
+        code: 'DUPLICATE_KEY',
+        why: `${d.path} has key \`${d.key}\` repeated ${d.count} times — the file a reader opens is not the object the verifier reads, because JSON.parse silently keeps only the last one`,
+      }));
+    }
+  } catch {
+    // malformed JSON — JSON.parse below reports it properly.
+  }
+
   let card;
   try {
-    card = JSON.parse(readFileSync(cardPath, 'utf8'));
+    card = JSON.parse(rawText);
   } catch (e) {
     return [{ code: 'CARD_UNPARSEABLE', why: `cannot parse ${cardPath}: ${e.message}` }];
+  }
+
+  // 0 · schema: the parsed card must conform to reference/schema/lesson-card.v1.json in full —
+  //     every type, every required field, every closed enum, additionalProperties, the oneOf
+  //     unions, the lot. This runs FIRST and returns immediately on failure, for the same reason
+  //     SHA256_MISMATCH stops early below: every check after this point assumes the card has the
+  //     shape the schema demands (e.g. that `numbers[i].value` is a quote object carrying a `span`
+  //     to re-slice, not a bare number an attacker spliced in). Running span/coverage/ordering
+  //     checks against a structurally invalid card would produce a page of misleading crashes and
+  //     mismatches instead of one clear reason the card is void.
+  const schemaErrors = validateSchema(card, SCHEMA);
+  if (schemaErrors.length > 0) {
+    return schemaErrors.map((e) => ({ code: 'SCHEMA_INVALID', why: `${e.path || '(root)'}: ${e.message}` }));
   }
 
   // 1 · shape: every field present, in the declared order, nothing extra.
@@ -99,8 +301,49 @@ function verifyCard(cardPath) {
   // 2 · the input: it must exist and be the exact bytes the card was cut from.
   const srcRel = card?.source?.file;
   if (typeof srcRel !== 'string') return problems.concat([{ code: 'SOURCE_MISSING', why: 'card declares no source.file' }]);
+
+  // 2a · source.file must stay strictly inside the repo. Checked on the RESOLVED path, not by
+  //      grepping for '..' in the string, because that is what actually determines where the bytes
+  //      come from: `path.join` normalises '..' segments against ROOT, and it is the normalised
+  //      result escaping ROOT that is the real vulnerability — a card can otherwise verify against
+  //      an arbitrary file anywhere on disk while claiming to be an audited, in-repo citation.
+  if (/^(?:[A-Za-z]:)?[\\/]/.test(srcRel))
+    return problems.concat([{ code: 'SOURCE_FILE_ESCAPES_REPO', why: `source.file \`${srcRel}\` is an absolute path` }]);
   const srcPath = join(ROOT, srcRel);
-  if (!existsSync(srcPath)) return problems.concat([{ code: 'SOURCE_MISSING', why: `source file does not exist: ${srcRel}` }]);
+  if (srcPath !== ROOT && !srcPath.startsWith(ROOT + '/'))
+    return problems.concat([{ code: 'SOURCE_FILE_ESCAPES_REPO', why: `source.file \`${srcRel}\` resolves outside the repo` }]);
+
+  // 2b · only two directories are treated as holding citable transcript bytes at all: the shipped
+  //      inputs, and the test harness's own fixtures. Anything else (README.md, a checker script,
+  //      the schema itself) is not a transcript no matter how real the bytes are.
+  if (!/^(?:inputs|fixtures)\//.test(srcRel))
+    return problems.concat([{ code: 'SOURCE_FILE_NOT_ALLOWED', why: `source.file \`${srcRel}\` is not under inputs/ or fixtures/` }]);
+
+  // 2c · an inputs/ path must be one of the files this repo actually registers as a shipped input —
+  //      closes the case where a new, unlisted inputs/*.txt is smuggled in and cited.
+  if (srcRel.startsWith('inputs/') && !REGISTERED_INPUTS.has(srcRel))
+    return problems.concat([
+      { code: 'SOURCE_FILE_UNREGISTERED', why: `source.file \`${srcRel}\` is not listed in inputs/sha256sums.txt` },
+    ]);
+
+  // 2d · a card whose own filename matches one of the registered inputs' basenames is bound to cite
+  //      exactly that input. This is what actually stops the AA/AS shape of attack — take a real,
+  //      shipped card and repoint its source.file at a different file while changing nothing else —
+  //      for the cards that ship and persist in cards/. It is a real, narrower property than "cite
+  //      any real file", not a complete one: a card verified under an unrelated filename is not
+  //      bound by this check and falls through to 2a-2c only. See the schema's note on source.file.
+  const cardBasename = basename(cardPath).replace(/\.card\.json$|\.json$/, '');
+  const expectedSrc = EXPECTED_SOURCE_BY_BASENAME.get(cardBasename);
+  if (expectedSrc && srcRel !== expectedSrc)
+    return problems.concat([
+      {
+        code: 'SOURCE_FILE_IDENTITY_MISMATCH',
+        why: `card \`${basename(cardPath)}\` must cite \`${expectedSrc}\`, not \`${srcRel}\` — its own filename identifies it as a card for that specific registered input`,
+      },
+    ]);
+
+  const srcExists = existsSync(srcPath);
+  if (!srcExists) return problems.concat([{ code: 'SOURCE_MISSING', why: `source file does not exist: ${srcRel}` }]);
 
   const buf = readFileSync(srcPath);
   const actualHash = sha256(buf);
@@ -113,9 +356,24 @@ function verifyCard(cardPath) {
   if (card.source.bytes !== buf.length)
     P('SOURCE_BYTES_MISMATCH', `source.bytes says ${card.source.bytes}, ${srcRel} is ${buf.length} bytes`);
 
+  // 2e · duration_seconds is sibling metadata from inputs/meta.json, keyed by the input's basename —
+  //      re-read here (an input artifact, not the converter) and checked exactly, rather than
+  //      merely typed-checked, so a fabricated or stale figure cannot ride along unexamined.
+  {
+    const metaEntry = INPUT_META[basename(srcRel)];
+    const expectedDuration = typeof metaEntry?.duration_seconds === 'number' ? metaEntry.duration_seconds : ABSENT;
+    const actualDuration = card.source.duration_seconds;
+    if (actualDuration !== expectedDuration)
+      P(
+        'SOURCE_DURATION_MISMATCH',
+        `source.duration_seconds is ${JSON.stringify(actualDuration)}, inputs/meta.json says ${JSON.stringify(expectedDuration)} for ${basename(srcRel)}`
+      );
+  }
+
   const N = buf.length;
   const covered = new Uint8Array(N);
   const spansSeen = [];
+  const CPS = byteToCodepoint(buf);
 
   // 3 · every quote byte-matches its span, and no span cuts a word or a character in half.
   function verifyQuote(q, path) {
@@ -141,9 +399,12 @@ function verifyCard(cardPath) {
     }
     // The bytes match. That is not yet enough — a span shifted a few bytes can still land on real
     // text. A span that begins or ends inside a word, or inside a UTF-8 character, is not a citation.
-    if (s.start > 0 && (isContinuationByte(buf[s.start]) || (isWordByte(buf[s.start - 1]) && isWordByte(buf[s.start]))))
+    // "Inside a word" is decided on the actual Unicode code point on each side of the cut (letters,
+    // numbers, marks, underscore), not on the raw byte — so a digit glued to a letter is still
+    // caught, but a digit next to a symbol like "°" is not mistaken for one.
+    if (s.start > 0 && (isContinuationByte(buf[s.start]) || (isWordCodePoint(CPS[s.start - 1]) && isWordCodePoint(CPS[s.start]))))
       P('SPAN_WORD_BOUNDARY', `${path} span starts mid-word or mid-character at byte ${s.start}`);
-    if (s.end < N && (isContinuationByte(buf[s.end]) || (isWordByte(buf[s.end - 1]) && isWordByte(buf[s.end]))))
+    if (s.end < N && (isContinuationByte(buf[s.end]) || (isWordCodePoint(CPS[s.end - 1]) && isWordCodePoint(CPS[s.end]))))
       P('SPAN_WORD_BOUNDARY', `${path} span ends mid-word or mid-character at byte ${s.end}`);
 
     for (let i = s.start; i < s.end; i++) covered[i] = 1;
@@ -181,11 +442,8 @@ function verifyCard(cardPath) {
     if (f === 'source' || f === 'coverage' || f === 'schema' || f === 'profile' || f === 'generated_utc') continue;
     if (card[f] !== undefined) walk(card[f], f);
   }
-  if (card.source?.duration_seconds !== undefined) {
-    const d = card.source.duration_seconds;
-    if (d !== ABSENT && typeof d !== 'number')
-      P('SOURCE_DURATION_INVALID', `source.duration_seconds must be a number or "${ABSENT}"`);
-  }
+  // (duration_seconds's TYPE is already enforced by the schema's oneOf in step 0; its VALUE is
+  // checked against inputs/meta.json above in step 2e.)
 
   // 5 · closed enums stay closed.
   if (Array.isArray(card.entities))
@@ -200,6 +458,73 @@ function verifyCard(cardPath) {
       if (!REASON_ENUM.includes(u.reason)) P('ENUM_VIOLATION', `unmapped[${i}].reason \`${u.reason}\` is not in the closed set`);
     });
 
+  // 5.1 · a speaker's name must sit INSIDE its own evidence. field-definitions.md says evidence is
+  //       "the span of the phrase that established who is speaking" — so the name is not evidence
+  //       for itself unless it is part of that phrase. Two individually byte-correct quotes (a real
+  //       name, a real evidence phrase for someone else entirely) do not make a speaker; this is
+  //       what stops Dana's name being swapped for Tomas's while Dana's own evidence stays put.
+  if (Array.isArray(card.speakers))
+    card.speakers.forEach((sp, i) => {
+      const n = sp?.name?.span, e = sp?.evidence?.span;
+      if (!n || !e) return; // already reported by verifyQuote/QUOTE_MISSING_SPAN
+      if (!(n.start >= e.start && n.end <= e.end))
+        P(
+          'SPEAKER_NAME_NOT_IN_EVIDENCE',
+          `speakers[${i}].name [${n.start},${n.end}) is not contained in speakers[${i}].evidence [${e.start},${e.end}) — a name quoted from outside its own establishing phrase is not evidence for that phrase`
+        );
+    });
+
+  // 5.2 · numbers[].unit, when stated, must sit immediately after numbers[].value with nothing but
+  //       whitespace between them. A unit that byte-matches something real elsewhere in the input is
+  //       not THIS number's unit — proximity is what "adjacent" in field-definitions.md means.
+  if (Array.isArray(card.numbers))
+    card.numbers.forEach((num, i) => {
+      if (!num || num.unit === ABSENT) return;
+      const v = num?.value?.span, u = num?.unit?.span;
+      if (!v || !u) return; // already reported by verifyQuote/QUOTE_MISSING_SPAN
+      const gap = u.start - v.end;
+      const between = gap >= 0 && gap <= N ? buf.subarray(v.end, u.start).toString('utf8') : '';
+      if (gap < 0 || gap > UNIT_MAX_GAP_BYTES || !/^\s*$/.test(between))
+        P(
+          'UNIT_NOT_ADJACENT',
+          `numbers[${i}].unit [${u.start},${u.end}) is not immediately after numbers[${i}].value [${v.start},${v.end}) (gap=${gap}) — a unit quoted from a different sentence is not this number's unit`
+        );
+    });
+
+  // 5.3 · definitions[].definition must be associated with definitions[].term — the input's own
+  //       connective phrase ("is", "which is") sits between the two, and that phrase is short.
+  if (Array.isArray(card.definitions))
+    card.definitions.forEach((d, i) => {
+      const t = d?.term?.span, def = d?.definition?.span;
+      if (!t || !def) return; // already reported by verifyQuote/QUOTE_MISSING_SPAN
+      const gap = def.start - t.end;
+      if (gap < 0 || gap > ASSOCIATION_MAX_GAP_BYTES)
+        P(
+          'DEFINITION_NOT_ASSOCIATED',
+          `definitions[${i}].definition [${def.start},${def.end}) is ${gap} byte(s) from definitions[${i}].term [${t.start},${t.end}) — a definition this far from its term is not "the definition as given" for it`
+        );
+    });
+
+  // 5.4 · entities[].role, when stated, must be near entities[].name. The two ways role legitimately
+  //       gets set (see convert.mjs) are: a self-introduction that CONTAINS the name ("my name is
+  //       Marco Salas"), or a definition phrase that starts shortly AFTER the name ("Dexter is a
+  //       platform..."). This closes the bypass where an unrelated existing claim elsewhere in the
+  //       card — true on its own, with nothing to do with this entity — was supplied as its role to
+  //       clear KIND_WITHOUT_ROLE.
+  if (Array.isArray(card.entities))
+    card.entities.forEach((e, i) => {
+      if (!e || e.role === ABSENT) return;
+      const n = e?.name?.span, r = e?.role?.span;
+      if (!n || !r) return; // already reported by verifyQuote/QUOTE_MISSING_SPAN
+      const contained = n.start >= r.start && n.end <= r.end;
+      const roleAfterName = r.start >= n.end ? r.start - n.end : Infinity;
+      if (!contained && roleAfterName > ASSOCIATION_MAX_GAP_BYTES)
+        P(
+          'ROLE_NOT_NEAR_NAME',
+          `entities[${i}].role [${r.start},${r.end}) is not near entities[${i}].name [${n.start},${n.end}) — a role with no proximity to the name does not establish that entity's classification`
+        );
+    });
+
   // 6 · steps: index increments by one, and spans strictly increase.
   //     A narrated procedure runs forwards. A step whose span jumps backwards is pointing at a
   //     repeat of the same words elsewhere in the input — the neighbour attack, which passes the
@@ -212,12 +537,25 @@ function verifyCard(cardPath) {
     let prevPath = null;
     card.steps.forEach((st, i) => {
       const s = st?.action?.span;
+      const text = st?.action?.text;
       if (!s || typeof s.start !== 'number') return; // already reported by verifyQuote
-      if (s.start <= prev)
-        P(
-          'STEP_ORDER_NOT_INCREASING',
-          `steps[${i}] span starts at ${s.start}, at or before ${prevPath} at ${prev} — a procedure is narrated in order, so this span points at a different occurrence of the same words`
-        );
+
+      let why = null;
+      if (s.start <= prev) {
+        why = `span starts at ${s.start}, at or before ${prevPath} at ${prev} — a procedure is narrated in order, so this span points at a different occurrence of the same words`;
+      } else if (i > 0 && typeof text === 'string' && text.length > 0) {
+        // A span that increases is not enough on its own: two DIFFERENT actions can each occur
+        // twice in the source such that citing the SECOND occurrence of the earlier-narrated one
+        // and the FIRST occurrence of a later-narrated one still leaves spans increasing overall,
+        // while the actual narration order is reversed. The tell is this step's own wording having
+        // an occurrence in the source EARLIER than the previous step's chosen span — a procedure
+        // narrated forward cannot have a later step's exact words appear before an earlier step's
+        // own cited occurrence, no matter which occurrence either step's span happens to point at.
+        const earliest = buf.indexOf(Buffer.from(text, 'utf8'));
+        if (earliest !== -1 && earliest < prev)
+          why = `text \`${text.length > 40 ? text.slice(0, 40) + '…' : text}\` occurs earlier in the source (byte ${earliest}) than ${prevPath}'s own span (start ${prev}) — a procedure narrated forward cannot have a later step's wording appear before an earlier step's chosen occurrence`;
+      }
+      if (why) P('STEP_ORDER_NOT_INCREASING', `steps[${i}] ${why}`);
       prev = s.start;
       prevPath = `steps[${i}]`;
     });
@@ -233,15 +571,39 @@ function verifyCard(cardPath) {
     P('COVERAGE_MISMATCH', `coverage.covered_bytes is ${c.covered_bytes}, the card's own spans cover ${coveredBytes}`);
   if (Math.abs((c.pct ?? -1) - pct) > 0.011) P('COVERAGE_MISMATCH', `coverage.pct is ${c.pct}, recomputed ${pct}`);
 
+  // 7a · the AGGREGATE floor — a separate gate from the per-run scan in step 8. The per-run scan
+  //      below only ever looks at ONE contiguous uncovered run at a time, so a card that sheds the
+  //      same total number of bytes spread across many runs, each individually under the bar,
+  //      passes it completely. This recomputes total coverage (the `pct` just computed above, from
+  //      the card's own spans, never from anything the card asserts) and compares it against
+  //      SCHEMA.minimumCoveragePct — a profile-level floor, not a per-card one, for the same reason
+  //      the omission bar is read from the schema rather than trusted from the card.
+  if (pct < MIN_COVERAGE_PCT)
+    P(
+      'COVERAGE_BELOW_FLOOR',
+      `recomputed coverage is ${pct}%, below the lesson-card.v1 profile's aggregate floor of ${MIN_COVERAGE_PCT}% — even though no single uncovered run reaches the ${PROFILE_THRESHOLD_BYTES}-byte per-run bar, the total loss across all of them does`
+    );
+
   // 8 · nothing that matters got dropped.
   //     Recomputed from the source and the card's spans — NOT read out of the card's unmapped list,
-  //     which is the whole point. A run of input that no span touches, at or above the bar the card
-  //     set for itself, had to be declared. Runs with no word characters are skipped: whitespace and
-  //     punctuation between two quotes is not content that went missing.
-  const threshold = Number.isInteger(c.unmapped_threshold_bytes) ? c.unmapped_threshold_bytes : null;
-  if (threshold === null) {
-    P('COVERAGE_MISMATCH', 'coverage.unmapped_threshold_bytes is missing; the card declares no bar to be held to');
-  } else {
+  //     which is the whole point. A run of input that no span touches, at or above the bar, had to
+  //     be declared. Runs with no word characters are skipped: whitespace and punctuation between
+  //     two quotes is not content that went missing.
+  //
+  //     The bar itself comes from the PROFILE (schema.unmappedThresholdBytes), never from the card
+  //     being judged — a card is free to restate the bar in coverage.unmapped_threshold_bytes for a
+  //     human reader, but it cannot choose the bar the scan actually uses. If a card's restatement
+  //     disagrees with the profile, that is its own problem below; schema validation in step 0
+  //     already guaranteed the field is present and a valid integer >= 1, so it is safe to just
+  //     compare here rather than re-check its shape.
+  const threshold = PROFILE_THRESHOLD_BYTES;
+  if (c.unmapped_threshold_bytes !== threshold) {
+    P(
+      'COVERAGE_THRESHOLD_NOT_PROFILE',
+      `coverage.unmapped_threshold_bytes is ${c.unmapped_threshold_bytes}, but the lesson-card.v1 profile fixes the omission bar at ${threshold} — a card cannot set its own bar`
+    );
+  }
+  {
     let run = null;
     const flush = () => {
       if (!run) return;
