@@ -24,8 +24,10 @@ jobs:
           node-version: 22
       - run: node --version
       - run: node checker/convert.mjs
-      - name: re-running convert changes only generated_utc
-        run: test "$(git diff -U0 -- cards/ | grep -E '^[+-][^+-]' | grep -vc generated_utc)" = 0
+      - name: re-running convert changes only generated_utc, and writes no extra card
+        run: |
+          git diff --exit-code -I '"generated_utc"' -- cards/
+          test -z "$(git ls-files --others --exclude-standard -- cards/)"
       - run: node checker/verify-traces.mjs
       - run: node checker/shape-diff.mjs
       - run: node checker/selftest.mjs

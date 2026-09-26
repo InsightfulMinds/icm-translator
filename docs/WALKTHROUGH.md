@@ -12,6 +12,7 @@
 [quick start](#quick-start-your-own-transcript-in-under-a-minute) ·
 [the four judging questions](#the-four-questions-this-is-judged-on) ·
 [as a Claude project](#drop-it-into-a-claude-project-the-exact-files) ·
+[who does it by hand](#what-it-converts-and-who-does-it-by-hand) ·
 [what a card looks like](#what-a-card-looks-like) ·
 [1, shape holds](#1--the-output-shape-holds-across-different-inputs) ·
 [what the fourth input exposed](#what-the-fourth-input-exposed) ·
@@ -1054,13 +1055,16 @@ Past those six:
 - **`title` has never fired at all.** All four shipped inputs carry `title: not in source`, and so
   does every fixture, control included. Nothing in this repo demonstrates the field holding a real
   value: the path is written and reachable, but unexercised.
-- **It has only ever been run on macOS, on Node 22.22.1.** Never on Linux, never on Windows, never
-  on another Node major. The code uses Node builtins only, with no dependencies and no shell-outs,
-  but two things make Windows unlikely to work rather than merely untested: the verifier's
-  repo-escape check compares paths with a `/` separator (`srcPath.startsWith(ROOT + '/')` in
-  `checker/verify-traces.mjs`), so every card would be refused as escaping the repo, and a checkout
-  with `core.autocrlf` on rewrites the inputs' line endings, which changes the bytes every hash and
-  span points into. "Should work" is not "was run", and this line is the difference.
+- **It has been run by hand only on macOS, on Node 22.22.1.** `.github/workflows/check.yml` also
+  runs the four commands on GitHub's Ubuntu and macOS runners for every push; the repo's Actions tab
+  shows the latest result. Never on Windows, never on another Node major. The code uses Node builtins
+  only, with no dependencies and no shell-outs, but two things make Windows unlikely to work rather
+  than merely untested: the verifier's repo-escape check compares paths with a `/` separator
+  (`srcPath.startsWith(ROOT + '/')` in `checker/verify-traces.mjs`), so every card would be refused
+  as escaping the repo, and a checkout with `core.autocrlf` on rewrites line endings, which changes
+  the bytes that three of the four inputs' hashes and spans point into (the fourth,
+  `03-mcp-walkthrough.txt`, has no line ending at all). "Should work" is not "was run", and this line
+  is the difference.
 - **One input is synthetic.** Three of the four shipped inputs are real recordings; the fourth I
   wrote by hand. It is labelled as such in `inputs/PROVENANCE.md` and in the section above.
 

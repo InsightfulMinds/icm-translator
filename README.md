@@ -50,12 +50,13 @@ Every command answers `--help`, and all four follow one exit-code rule: `0` pass
 `2` bad usage.
 
 This page is the short version. The long one, with every command's full output, is
-[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md). It is the previous README, kept whole, and it is in the
-git history too.
+[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md). It began as the previous README, which is in the git
+history too, and is kept in step with the code.
 
 On this page: [the two terms](#two-words-this-page-leans-on) ·
 [your own transcript](#your-own-transcript-in-under-a-minute) ·
 [the four judging questions](#the-four-questions-this-is-judged-on) ·
+[who does this by hand](#who-does-this-by-hand-today) ·
 [using it as a Claude project](#drop-it-into-a-claude-project) ·
 [what a card looks like](#what-a-card-looks-like) ·
 [how the verifier is kept honest](#how-the-verifier-is-kept-honest) ·
@@ -403,10 +404,13 @@ Other facts worth knowing before you rely on it:
   the tables live in `rules.md` where you can read them.
 - One profile ships, `lesson-card.v1`. A second output shape would need new extraction code, not
   just a new schema file. See [Room to expand](docs/WALKTHROUGH.md#room-to-expand).
-- It has only ever been run on macOS, on Node 22.22.1. It is not expected to work on Windows, and
-  has not been tried there. The verifier's repo-escape check compares paths with a `/` separator
-  (`srcPath.startsWith(ROOT + '/')` in `checker/verify-traces.mjs`), and a checkout that rewrites
-  line endings to CRLF changes the very bytes every hash and span points into.
+- It has been run by hand only on macOS, on Node 22.22.1. `.github/workflows/check.yml` also runs
+  the four commands on GitHub's Ubuntu and macOS runners; the repo's Actions tab shows the latest
+  result. It is not expected to work on Windows, and has not been tried there. The verifier's
+  repo-escape check compares paths with a `/` separator (`srcPath.startsWith(ROOT + '/')` in
+  `checker/verify-traces.mjs`), so every card would be refused as escaping the repo, and a checkout
+  that rewrites line endings to CRLF changes the bytes that three of the four inputs' hashes and
+  spans point into.
 - Three of the four shipped inputs are real recordings, pseudonymised where they named a third party.
   The fourth I wrote by hand, and `inputs/PROVENANCE.md` says so.
 

@@ -117,7 +117,7 @@ const REPORT = process.env.CARDS_DIR ? null : join(ROOT, 'audits/SHAPE-DIFF.md')
 const files = existsSync(cardsDir) ? readdirSync(cardsDir).filter((f) => f.endsWith('.json')).sort() : [];
 if (files.length < 2) {
   const shown = relative(process.cwd(), cardsDir);
-  console.error(`FATAL: need at least 2 cards to diff, found ${files.length} in ${shown.startsWith('..') ? cardsDir : shown || '.'}/. Run node checker/convert.mjs first.`);
+  console.error(`FATAL: need at least 2 cards to diff, found ${files.length} in ${shown.startsWith('..') ? cardsDir : shown || '.'}/.${process.env.CARDS_DIR ? '' : ' Run node checker/convert.mjs first.'}`);
   process.exit(1);
 }
 const cards = files.map((f) => ({ name: f, doc: JSON.parse(readFileSync(join(cardsDir, f), 'utf8')) }));
@@ -213,10 +213,10 @@ if (REPORT) {
 
 for (const r of rows) console.log(`  ${r.field.padEnd(16)} ${r.verdict.replace(/\*/g, '')}`);
 if (ok) {
-  console.log(`\nSHAPE HOLDS — ${cards.length} cards, identical field list and order. Wrote audits/SHAPE-DIFF.md`);
+  console.log(`\nSHAPE HOLDS — ${cards.length} cards, identical field list and order.${REPORT ? ' Wrote audits/SHAPE-DIFF.md' : ''}`);
   process.exit(0);
 }
 console.error(`\nSHAPE DRIFTED — ${problems.length} problem(s):`);
 for (const p of problems) console.error(`  - ${p.replace(/\n/g, '\n    ')}`);
-console.error('\nIf the output shape drifts between runs, it is a summarizer. Wrote audits/SHAPE-DIFF.md');
+console.error(`\nIf the output shape drifts between runs, it is a summarizer.${REPORT ? ' Wrote audits/SHAPE-DIFF.md' : ''}`);
 process.exit(1);
