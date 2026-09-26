@@ -21,7 +21,7 @@ must never be confused with the four real, shipped transcripts in `inputs/`.**
 
 They exist because the existing selftest mostly checks prepared artifacts (the control card, the
 shipped cards) rather than genuinely unseen input. `checker/selftest.mjs` runs the REAL
-`checker/convert.mjs` on each of these two files, then the REAL `checker/verify-traces.mjs` on the
+`checker/convert.mjs` on each of these three files, then the REAL `checker/verify-traces.mjs` on the
 card that comes out, and asserts exit 0 on both steps, the round trip the repo did not previously
 test at all.
 

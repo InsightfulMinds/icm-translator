@@ -2,6 +2,7 @@
 // shape-diff.mjs — prove the output shape holds across different inputs.
 //
 //   node checker/shape-diff.mjs                 diff every card in cards/, write audits/SHAPE-DIFF.md
+//   node checker/shape-diff.mjs --help          usage, exit codes
 //
 // Exit 0 = the shape holds. Exit 1 = it drifted, which means this is a summarizer and the entry is dead.
 //
@@ -96,6 +97,17 @@ function render(s) {
 
 const describe = (v) =>
   v === ABSENT ? '`not in source`' : Array.isArray(v) ? `${v.length} x \`${render(shapeOf(v).item)}\`` : `\`${render(shapeOf(v))}\``;
+
+// ── usage ───────────────────────────────────────────────────────────────────────────────────────
+const USAGE = `usage: node checker/shape-diff.mjs
+
+  Compares every card in cards/ field by field: the same field list, in the contract's fieldOrder,
+  with item shapes that unify (the absent marker unifies with anything). Writes the long form to
+  audits/SHAPE-DIFF.md. CARDS_DIR=<dir> diffs that folder instead and writes no report.
+  Exit 0 = the shape holds, 1 = it drifted or fewer than 2 cards were found, 2 = bad usage.`;
+const args = process.argv.slice(2);
+if (args.includes('--help') || args.includes('-h')) { console.log(USAGE); process.exit(0); }
+if (args.length) { console.error(`unexpected argument: ${args[0]} (this command takes none)\n\n${USAGE}`); process.exit(2); }
 
 // ── load ────────────────────────────────────────────────────────────────────────────────────────
 // CARDS_DIR exists so the selftest can point this at deliberately drifted cards and prove the

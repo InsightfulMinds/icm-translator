@@ -1,46 +1,47 @@
-<svg width="1000" height="440" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg">
+<svg width="1000" height="440" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t">
+<title id="t">convert.mjs and verify-traces.mjs share no code; only the schema file and the card, passed as data, connect them</title>
 <rect x="0" y="0" width="1000" height="440" fill="#1b1d21"/>
 
 <text x="30" y="28" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#d6d9de" font-weight="bold">The verifier does not import the converter</text>
 
 <!-- schema box (shared contract) -->
-<rect x="350" y="40" width="300" height="80" rx="6" fill="#24272c" stroke="#e8a33d" stroke-width="1.5"/>
+<rect x="320" y="40" width="360" height="80" rx="6" fill="#24272c" stroke="#e8a33d" stroke-width="1.5"/>
 <text x="500" y="66" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#e8a33d" text-anchor="middle" font-weight="bold">reference/schema/lesson-card.v1.json</text>
 <text x="500" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">written contract: field order + closed enums</text>
-<text x="500" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#8b9098" text-anchor="middle">read at runtime by verify-traces + shape-diff</text>
+<text x="500" y="104" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">read at runtime by verify-traces + shape-diff</text>
 
 <!-- lines from schema down to both boxes -->
 <line x1="410" y1="120" x2="200" y2="150" stroke="#e8a33d" stroke-width="1.3" stroke-dasharray="4,3"/>
 <line x1="590" y1="120" x2="800" y2="150" stroke="#e8a33d" stroke-width="1.3" stroke-dasharray="4,3"/>
 
 <!-- convert.mjs box -->
-<rect x="60" y="150" width="280" height="150" rx="6" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
+<rect x="40" y="150" width="320" height="150" rx="6" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
 <text x="200" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#d6d9de" text-anchor="middle" font-weight="bold">checker/convert.mjs</text>
 <text x="200" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">reads input.txt</text>
 <text x="200" y="222" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">slices spans, WRITES card.json</text>
-<text x="200" y="248" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#5fb87a" text-anchor="middle">imports: node:fs, node:crypto,</text>
-<text x="200" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#5fb87a" text-anchor="middle">node:path, node:url: stdlib only</text>
-<text x="200" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#8b9098" text-anchor="middle">never requires verify-traces.mjs</text>
+<text x="200" y="248" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5fb87a" text-anchor="middle">imports: node:fs, node:crypto,</text>
+<text x="200" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5fb87a" text-anchor="middle">node:path, node:url: stdlib only</text>
+<text x="200" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">never requires verify-traces.mjs</text>
 
 <!-- verify-traces.mjs box -->
-<rect x="660" y="150" width="280" height="150" rx="6" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
+<rect x="640" y="150" width="320" height="150" rx="6" fill="#24272c" stroke="#3a3d43" stroke-width="1"/>
 <text x="800" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#d6d9de" text-anchor="middle" font-weight="bold">checker/verify-traces.mjs</text>
 <text x="800" y="204" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">RE-READS input.txt</text>
 <text x="800" y="222" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">re-slices spans, compares to card.json</text>
-<text x="800" y="248" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#5fb87a" text-anchor="middle">imports: node:fs, node:crypto,</text>
-<text x="800" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#5fb87a" text-anchor="middle">node:path, node:url + ./schema-validate.mjs</text>
-<text x="800" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#8b9098" text-anchor="middle">never requires convert.mjs</text>
+<text x="800" y="248" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5fb87a" text-anchor="middle">imports: node:fs, node:crypto,</text>
+<text x="800" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#5fb87a" text-anchor="middle">node:path, node:url + ./schema-validate.mjs</text>
+<text x="800" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">never requires convert.mjs</text>
 
 <!-- gap between them: no arrow -->
-<line x1="340" y1="225" x2="365" y2="225" stroke="#8b9098" stroke-width="1" stroke-dasharray="2,4"/>
-<line x1="635" y1="225" x2="660" y2="225" stroke="#8b9098" stroke-width="1" stroke-dasharray="2,4"/>
+<line x1="362" y1="225" x2="372" y2="225" stroke="#8b9098" stroke-width="1" stroke-dasharray="2,4"/>
+<line x1="628" y1="225" x2="638" y2="225" stroke="#8b9098" stroke-width="1" stroke-dasharray="2,4"/>
 <text x="500" y="215" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#e0625f" text-anchor="middle" font-weight="bold">GAP: no import</text>
 <text x="500" y="235" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#e0625f" text-anchor="middle">no shared code between these two files</text>
 
 <!-- card artifact flowing down and across as data -->
 <rect x="380" y="314" width="240" height="55" rx="6" fill="#24272c" stroke="#8b9098" stroke-width="1"/>
 <text x="500" y="338" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#d6d9de" text-anchor="middle" font-weight="bold">*.card.json</text>
-<text x="500" y="356" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#8b9098" text-anchor="middle">the artifact: flows as DATA only</text>
+<text x="500" y="356" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle">the artifact: flows as DATA only</text>
 
 <path d="M 200 300 C 200 360, 380 294, 390 314" fill="none" stroke="#d6d9de" stroke-width="1.3" marker-end="url(#arrow)"/>
 <path d="M 610 314 C 660 294, 800 360, 800 300" fill="none" stroke="#d6d9de" stroke-width="1.3" marker-end="url(#arrow)"/>

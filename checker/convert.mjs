@@ -3,6 +3,7 @@
 //
 //   node checker/convert.mjs                        convert every input in inputs/
 //   node checker/convert.mjs inputs/foo.txt [...]   convert the inputs given
+//   node checker/convert.mjs --help                 usage, exit codes
 //
 // Cards are written to cards/<stem>.card.json.
 //
@@ -24,9 +25,9 @@
 // deliberately dumb: a step is a step because it matches a marker, not because a model judged it to
 // be one. Fidelity, not judgement.
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync, realpathSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, dirname, basename } from 'node:path';
+import { join, dirname, basename, resolve, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -293,7 +294,40 @@ function convert(inputRel) {
 }
 
 // ── main ────────────────────────────────────────────────────────────────────────────────────────
-let targets = process.argv.slice(2);
+const USAGE = `usage: node checker/convert.mjs [<transcript.txt> ...]
+
+  No arguments: convert every numbered transcript in inputs/ (NN-name.txt).
+  With paths:   convert just those files. Each must be a UTF-8 text file inside this repo,
+                normally under inputs/. Paths may be absolute or relative to where you are.
+
+  Writes cards/<stem>.card.json per input and prints one summary line per card.
+  Exit 0 = every card written, 1 = an input is missing or outside the repo, 2 = bad usage.
+  Next:   node checker/verify-traces.mjs cards/<stem>.card.json`;
+
+const args = process.argv.slice(2);
+if (args.includes('--help') || args.includes('-h')) { console.log(USAGE); process.exit(0); }
+const unknown = args.find((a) => a.startsWith('-'));
+if (unknown) { console.error(`unknown option: ${unknown}\n\n${USAGE}`); process.exit(2); }
+
+// A path argument may be relative to the current directory or to the repo root, or absolute. It is
+// compared after realpath on both sides, so a checkout reached through a symlink (macOS /tmp is one)
+// still counts as inside the repo. The card's source.file is always the repo-relative path.
+const REAL_ROOT = realpathSync(ROOT);
+function repoRelative(arg) {
+  for (const p of [resolve(arg), resolve(ROOT, arg)]) {
+    if (!existsSync(p) || !statSync(p).isFile()) continue;
+    const rel = relative(REAL_ROOT, realpathSync(p));
+    if (rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel)) {
+      console.error(`${arg} is outside the repo. Copy it into inputs/ first: a card must cite a file the verifier can re-read inside the repo.`);
+      process.exit(1);
+    }
+    return rel.split(sep).join('/');
+  }
+  console.error(`input not found: ${arg}`);
+  process.exit(1);
+}
+
+let targets = args.map(repoRelative);
 if (targets.length === 0) {
   // Only the numbered transcripts. inputs/ also holds sha256sums.txt and meta.json, which are
   // provenance about the inputs rather than inputs — converting those produced a nonsense card.
@@ -304,9 +338,7 @@ if (targets.length === 0) {
 }
 mkdirSync(join(ROOT, 'cards'), { recursive: true });
 
-for (const t of targets) {
-  const rel = t.startsWith(ROOT) ? t.slice(ROOT.length + 1) : t;
-  if (!existsSync(join(ROOT, rel))) { console.error(`input not found: ${rel}`); process.exit(1); }
+for (const rel of targets) {
   const card = convert(rel);
   const out = join(ROOT, 'cards', basename(rel).replace(/\.txt$/, '') + '.card.json');
   writeFileSync(out, JSON.stringify(card, null, 2) + '\n');

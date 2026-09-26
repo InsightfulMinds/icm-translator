@@ -24,7 +24,7 @@ a card could still misrepresent the source while passing those checks are under 
 ```bash
 git clone https://github.com/InsightfulMinds/icm-translator && cd icm-translator
 
-# 4 shipped inputs -> 4 cards
+# 4 shipped inputs -> 4 cards (rewrites cards/; only the generated_utc timestamp changes)
 node checker/convert.mjs
 
 # re-read the inputs, byte-check every span (exit 0 / 1)
@@ -33,15 +33,33 @@ node checker/verify-traces.mjs
 # field-by-field diff across the 4 cards (exit 0 / 1)
 node checker/shape-diff.mjs
 
-# 145 assertions across 26 staged inventions (exit 0 / 1)
+# 155 assertions: 26 staged inventions, shape drift, unseen input, the CLI (exit 0 / 1)
 node checker/selftest.mjs
 ```
 
-No dependencies, no install, no network. Node 22+.
+No dependencies, no install, no network. Node 22+. When all is well, the last line each check
+prints is:
+
+```
+All 5 card(s) verified against their inputs.
+SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF.md
+155 passed, 0 failed.
+```
+
+Every command answers `--help`, and all four follow one exit-code rule: `0` pass, `1` fail,
+`2` bad usage.
 
 This page is the short version. The long one, with every command's full output, is
 [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md). It is the previous README, kept whole, and it is in the
 git history too.
+
+On this page: [the two terms](#two-words-this-page-leans-on) ·
+[your own transcript](#your-own-transcript-in-under-a-minute) ·
+[the four judging questions](#the-four-questions-this-is-judged-on) ·
+[using it as a Claude project](#drop-it-into-a-claude-project) ·
+[what a card looks like](#what-a-card-looks-like) ·
+[how the verifier is kept honest](#how-the-verifier-is-kept-honest) ·
+[what broke](#what-broke-before-this-shipped) · [limits](#limits) · [layout](#layout)
 
 ## Two words this page leans on
 
@@ -73,7 +91,9 @@ v22.22.1
 ```
 
 Save your transcript as a plain UTF-8 `.txt` file inside `inputs/`. The name does not matter, only
-that it lives there. The run below used a 256-byte file (no trailing newline) saved as
+that it lives inside the repo: the card cites the file and the verifier re-reads it, so
+`convert.mjs` refuses a file outside the repo and says so. You can type the path from anywhere,
+absolute or relative to where you are. The run below used a 256-byte file (no trailing newline) saved as
 `inputs/quickstart-demo.txt`. That
 file is not shipped, so substitute your own filename. Its contents were:
 
@@ -127,7 +147,9 @@ disagrees it tells you exactly which byte range it disagrees with.
 ## The four questions this is judged on
 
 This repo is an entry in round #13, "The Translator," of the Clief Notes weekly build competition.
-The brief names four criteria. Each row below ends in a command you can run.
+The brief names four criteria. Each row below ends in a command you can run. The version that was
+judged is the tag [`comp13-submission`](https://github.com/InsightfulMinds/icm-translator/tree/comp13-submission)
+(`88b7d59`); this page describes the tree it sits in.
 
 | the question | the answer | settle it yourself |
 |---|---|---|
@@ -321,7 +343,14 @@ regression, so it now writes a temporary transcript under `inputs/`, converts it
 checks that the no-argument run stays green with that card present. The same review found the
 converter cutting `1.2M` down to the number `1`, byte-exact and wrong, and `$50K` down to `$50`,
 which the verifier then rejected. Fixed the same day: a suffixed figure now stays in its claim, and
-`fixtures/e2e-03-suffixed-figures.txt` pins the extracted figures. The count stands at 145.
+`fixtures/e2e-03-suffixed-figures.txt` pins the extracted figures. The count stood at 145 at the
+deadline.
+
+After the deadline, a walk through a fresh clone in `/tmp` found `convert.mjs` answering
+`input not found` for an absolute path to a transcript that was sitting right there. macOS `/tmp`
+is a symlink, and the converter compared paths as strings. Paths are now compared after `realpath`,
+every command answers `--help`, and ten command-line assertions, one of them staging a symlinked
+checkout, bring the count to 155.
 
 You can run the first attack yourself. It exits 1 now, and the unmodified card still exits 0, which
 is what shows the rejection is real rather than a verifier that fails everything:
@@ -336,8 +365,8 @@ The holes those passes found that a byte checker cannot close are listed next, w
 
 ## Limits
 
-Extraction limits, all found by the fourth shipped input (evidence in
-[the walkthrough](docs/WALKTHROUGH.md#what-the-fourth-input-exposed)):
+Extraction limits. The first five were found by the fourth shipped input (evidence in
+[the walkthrough](docs/WALKTHROUGH.md#what-the-fourth-input-exposed)), the sixth by a review pass:
 
 1. No speaker attribution on claims.
 2. Entities skip sentence-initial names, so self-introducing speakers never reach `entities[]`.
@@ -392,8 +421,9 @@ README.md      this file, the short version
 docs/          WALKTHROUGH.md, the long version with every command's full output, plus the diagrams
 checker/       convert.mjs · verify-traces.mjs · schema-validate.mjs · shape-diff.mjs · selftest.mjs
 inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + meta.json + PROVENANCE.md
-fixtures/      clean control + 26 staged inventions + their 386-byte transcript + 2 unseen-input e2e transcripts + the generator + README.md
+fixtures/      clean control + 26 staged inventions + their 386-byte transcript + 3 unseen-input e2e transcripts + the generator + README.md
 cards/         the 4 outputs
+assets/        social-preview.png, the image GitHub shows when the repo link is shared
 audits/        generated by shape-diff.mjs, not committed; your run writes it
 ```
 

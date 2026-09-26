@@ -1,4 +1,5 @@
-<svg width="1000" height="420" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg">
+<svg width="1000" height="420" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t">
+<title id="t">A span is a byte offset pair into a real file: the name span [27,31) nests inside the evidence span [23,31) of inputs/04-pricing-objection.txt</title>
 <rect x="0" y="0" width="1000" height="420" fill="#1b1d21"/>
 
 <text x="30" y="30" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17" fill="#d6d9de" font-weight="bold">A span is a byte offset into a real file</text>
@@ -131,8 +132,8 @@
 <text x="890" y="154" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#8b9098" text-anchor="middle" font-weight="normal">50</text>
 
 
-<text x="431" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#e8a33d" text-anchor="middle">evidence [23,31)</text>
-<text x="499" y="72" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10" fill="#e8a33d" text-anchor="middle">name [27,31)</text>
+<text x="431" y="86" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#e8a33d" text-anchor="middle">evidence [23,31)</text>
+<text x="499" y="72" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11" fill="#e8a33d" text-anchor="middle">name [27,31)</text>
 
 <!-- connectors -->
 <line x1="499" y1="140" x2="260" y2="235" stroke="#e8a33d" stroke-width="1.2" stroke-dasharray="3,3"/>

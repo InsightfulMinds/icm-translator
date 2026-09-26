@@ -3,8 +3,9 @@
 > This is the full walkthrough: every command on the short README with its complete output, the four
 > judging criteria answered in detail, the fourth input's findings, all thirteen verifier checks, six
 > fixtures walked through, and the limits with their reproductions. It is the README as it stood
-> before the short version replaced it on Friday 2026-09-25 (git `7c84833`), with only the em dashes
-> edited out of the prose and the image paths adjusted for this folder. The short version is
+> before the short version replaced it on Friday 2026-09-25 (git `7c84833`), with the em dashes
+> edited out of the prose and the image paths adjusted for this folder. Since then its counts and
+> command outputs have been kept in step with the code. The short version is
 > [../README.md](../README.md).
 
 Converts a raw session transcript (Loom/Whisper, YouTube captions, any meeting recording's text)
@@ -52,10 +53,11 @@ the page is about.
 node checker/convert.mjs        # 4 shipped inputs -> 4 cards
 node checker/verify-traces.mjs  # re-read the inputs, byte-check every span      (exit 0 / 1)
 node checker/shape-diff.mjs     # field-by-field diff across the 4 cards         (exit 0 / 1)
-node checker/selftest.mjs       # 145 assertions across 26 staged inventions     (exit 0 / 1)
+node checker/selftest.mjs       # 155 assertions across 26 staged inventions     (exit 0 / 1)
 ```
 
-No dependencies, no install, no network. Node 22+. Everything below was produced by those commands.
+No dependencies, no install, no network. Node 22+. Every command answers `--help`; exit `0` is
+pass, `1` is fail, `2` is bad usage. Everything below was produced by those commands.
 
 ## Quick start: your own transcript, in under a minute
 
@@ -70,7 +72,9 @@ v22.22.1
 ```
 
 Save your own transcript as a plain UTF-8 `.txt` file inside `inputs/`: the name doesn't matter,
-only that it exists there. The run below used a 256-byte file saved as `inputs/quickstart-demo.txt`.
+only that it is inside the repo, because the card cites it and the verifier re-reads it.
+`convert.mjs` refuses a file outside the repo with a message saying so, and accepts the path typed
+from anywhere, absolute or relative to where you are. The run below used a 256-byte file saved as `inputs/quickstart-demo.txt`.
 **That file is not shipped in this repo**, so substitute your own filename in the commands. Its
 contents were:
 
@@ -856,7 +860,7 @@ watched them fire:
   item key removed) and requires the shape test to reject each, having first confirmed that two
   identical cards pass it
 
-A gate nobody has seen fail is not a gate. The full run is 145 assertions.
+A gate nobody has seen fail is not a gate. The full run is 155 assertions.
 
 ---
 
@@ -893,15 +897,15 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 exit=0
 
 $ node checker/selftest.mjs ; echo "exit=$?"
-...145 individual "pass" lines in nine groups, listed below...
-145 passed, 0 failed.
+...155 individual "pass" lines in ten groups, listed below...
+155 passed, 0 failed.
 exit=0
 ```
 
 Those last two are the only outputs elided on this page, and both are elided to their summary line
 only. Run them yourself and you get the per-line detail.
 
-`selftest.mjs`'s 145 assertions are grouped nine ways. The group headers below name what each group
+`selftest.mjs`'s 155 assertions are grouped ten ways. The group headers below name what each group
 checks, reproduced verbatim from a real run:
 
 ```
@@ -912,6 +916,7 @@ checks, reproduced verbatim from a real run:
 ── a card named after a registered input is bound to cite it ──────────────────
 ── the shape test still fails on real drift ───────────────────────────────────
 ── the real converter + real verifier round-trip on genuinely unseen input ────
+── the command line: --help, bad usage, and paths from anywhere ───────────────
 ── the shipped cards cite registered, hash-matching inputs ────────────────────
 ── the shipped cards verify against the shipped inputs ────────────────────────
 ```
@@ -920,8 +925,10 @@ The count moved from 36 to 37 when the fourth input was added, then to 117 (comm
 schema validation, the relationship checks, eighteen more negative fixtures and a two-transcript
 unseen-input round trip were added, to 129 (`410d01a`) with the evidence-span bound and the
 own-transcript fix, to 138 (`7c84833`) with the two duplicate gates, to 141 with the round trip
-for a transcript dropped under `inputs/`, and to 145 with the suffixed-figure regression test
-(`fixtures/e2e-03-suffixed-figures.txt`). Most groups above iterate a
+for a transcript dropped under `inputs/`, to 145 with the suffixed-figure regression test
+(`fixtures/e2e-03-suffixed-figures.txt`), and after the deadline to 155 with ten command-line
+assertions: `--help` and bad usage on each command, a transcript outside the repo, and an absolute
+path through a symlinked checkout, which `convert.mjs` used to report as not found. Most groups above iterate a
 directory (`fixtures/neg-*`, `cards/`) rather than a hardcoded list, so a new fixture or a new card
 adds assertions rather than relaxing existing ones. No check was weakened, edited or skipped to
 accommodate any of it.
@@ -1032,7 +1039,7 @@ Past those six:
   does every fixture, control included. Nothing in this repo demonstrates the field holding a real
   value: the path is written and reachable, but unexercised.
 - **It has only ever been run on macOS, on Node 22.22.1.** Never on Linux, never on Windows, never
-  on another Node major. There is nothing platform-specific in the code (four Node builtins, no
+  on another Node major. There is nothing platform-specific in the code (Node builtins only, no
   dependencies, no shell-outs), but "should work" is not "was run", and this line is the difference.
 - **One input is synthetic.** Three of the four shipped inputs are real recordings; the fourth I
   wrote by hand. It is labelled as such in `inputs/PROVENANCE.md` and in the section above.
@@ -1140,11 +1147,13 @@ identity.md    what it converts, from what, to what
 rules.md       the mapping: which input parts feed which fields, what to do with a gap, what never to add
 examples.md    six worked examples, every span copied from a real card
 reference/     THE CONTRACT: schema/lesson-card.v1.json, field-definitions.md, format-spec.md
-README.md      this file
+README.md      the short version
+docs/          this file (WALKTHROUGH.md) and the diagrams
 checker/       convert.mjs · verify-traces.mjs · schema-validate.mjs · shape-diff.mjs · selftest.mjs
 inputs/        3 real transcripts + 1 synthetic + sha256sums.txt + meta.json + PROVENANCE.md
 fixtures/      clean control + 26 staged inventions + their transcript + 3 unseen-input e2e transcripts + the generator
 cards/         the 4 outputs
+assets/        social-preview.png, the image GitHub shows when the repo link is shared
 audits/        generated by shape-diff.mjs, not committed; your run writes it
 ```
 

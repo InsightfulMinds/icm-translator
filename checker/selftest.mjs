@@ -2,8 +2,9 @@
 // selftest.mjs — prove the verifier fires on each staged invention, and ONLY on that one.
 //
 //   node checker/selftest.mjs
+//   node checker/selftest.mjs --help   usage, exit codes
 //
-// Exit 0 = every assertion held. Exit 1 = at least one did not.
+// Exit 0 = every assertion held. Exit 1 = at least one did not. Exit 2 = bad usage.
 //
 // A negative fixture that fails is worth very little on its own: a verifier that rejected every
 // card would pass all six. What makes them evidence is the pair of assertions below —
@@ -18,7 +19,8 @@
 // The verifier is run as a CHILD PROCESS, not imported, so its real exit code is asserted rather
 // than a return value that happens to look right.
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync, mkdtempSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +28,16 @@ import { createHash } from 'node:crypto';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const VERIFIER = join(ROOT, 'checker/verify-traces.mjs');
+
+const USAGE = `usage: node checker/selftest.mjs
+
+  Runs the real verifier and converter as child processes against the control card, every
+  negative fixture in fixtures/neg-*, staged shape drift, the unseen-input transcripts in
+  fixtures/e2e-*, and the shipped cards. Prints one pass/FAIL line per assertion.
+  Exit 0 = every assertion held, 1 = at least one did not, 2 = bad usage.`;
+const args = process.argv.slice(2);
+if (args.includes('--help') || args.includes('-h')) { console.log(USAGE); process.exit(0); }
+if (args.length) { console.error(`unexpected argument: ${args[0]} (this command takes none)\n\n${USAGE}`); process.exit(2); }
 
 let passed = 0;
 let failed = 0;
@@ -342,6 +354,46 @@ console.log('\n── the real converter + real verifier round-trip on genuinely
   } finally {
     rmSync(OWN_INPUT, { force: true });
     rmSync(OWN_CARD, { force: true });
+  }
+}
+
+console.log('\n── the command line: --help, bad usage, and paths from anywhere ───────────────');
+{
+  // A stranger's first contact is the command line, so its contract is pinned like any other gate:
+  // every command answers --help with a usage block and exit 0, and refuses an unknown option with
+  // exit 2 (0 and 1 stay reserved for pass and fail). The path assertions exist because of a real
+  // bug: convert.mjs once compared a path argument to the repo root as a string, so an absolute path
+  // into a checkout reached through a symlink (macOS /tmp is one) was reported "not found". Every
+  // other test here builds paths from ROOT itself, so none of them could see it.
+  for (const s of ['convert', 'verify-traces', 'shape-diff', 'selftest']) {
+    const script = join(ROOT, 'checker', `${s}.mjs`);
+    const h = spawnSync(process.execPath, [script, '--help'], { encoding: 'utf8' });
+    if (h.status === 0 && /^usage: node checker\//.test(h.stdout)) pass(`${s}.mjs --help prints usage, exits 0`);
+    else fail(`${s}.mjs --help prints usage, exits 0`, `exited ${h.status}: ${(h.stdout + h.stderr).slice(0, 120)}`);
+    const u = spawnSync(process.execPath, [script, '--no-such-option'], { encoding: 'utf8' });
+    if (u.status === 2) pass(`${s}.mjs rejects an unknown option, exits 2`);
+    else fail(`${s}.mjs rejects an unknown option, exits 2`, `exited ${u.status}`);
+  }
+
+  const CONVERTER = join(ROOT, 'checker/convert.mjs');
+  const tmp = mkdtempSync(join(tmpdir(), 'icm-selftest-'));
+  const outside = join(tmp, 'outside.txt');
+  const link = join(tmp, 'checkout-link');
+  const linkedCard = join(ROOT, 'cards', 'e2e-01-sensor-calibration.card.json');
+  try {
+    writeFileSync(outside, 'Hi, I am Sam. First, open the app.\n');
+    const o = spawnSync(process.execPath, [CONVERTER, outside], { encoding: 'utf8' });
+    if (o.status === 1 && /outside the repo/.test(o.stderr)) pass('convert.mjs refuses a transcript outside the repo, exits 1', 'and says to copy it into inputs/');
+    else fail('convert.mjs refuses a transcript outside the repo, exits 1', `exited ${o.status}: ${o.stderr.trim()}`);
+
+    symlinkSync(ROOT, link, 'junction'); // the type is ignored off Windows, where a dir link needs it
+    const l = spawnSync(process.execPath, [CONVERTER, join(link, 'fixtures/e2e-01-sensor-calibration.txt')], { encoding: 'utf8' });
+    const card = l.status === 0 && existsSync(linkedCard) ? JSON.parse(readFileSync(linkedCard, 'utf8')) : null;
+    if (card?.source?.file === 'fixtures/e2e-01-sensor-calibration.txt') pass('convert.mjs accepts an absolute path through a symlinked checkout', 'source.file stays repo-relative');
+    else fail('convert.mjs accepts an absolute path through a symlinked checkout', `exited ${l.status}: ${(l.stdout + l.stderr).trim()} source.file=${card?.source?.file}`);
+  } finally {
+    rmSync(linkedCard, { force: true });
+    rmSync(tmp, { recursive: true, force: true });
   }
 }
 

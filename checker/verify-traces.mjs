@@ -3,8 +3,9 @@
 //
 //   node checker/verify-traces.mjs                     verify every card in cards/ and the control
 //   node checker/verify-traces.mjs <card.json> [...]   verify the cards given
+//   node checker/verify-traces.mjs --help              usage, exit codes
 //
-// Exit 0 = every card verified. Exit 1 = at least one did not.
+// Exit 0 = every card verified. Exit 1 = at least one did not. Exit 2 = bad usage.
 //
 // THE DESIGN RULE, and it is the only one that matters:
 //
@@ -747,7 +748,20 @@ function verifyCard(cardPath) {
 }
 
 // ── main ────────────────────────────────────────────────────────────────────────────────────────
+const USAGE = `usage: node checker/verify-traces.mjs [<card.json> ...]
+
+  No arguments: verify every card in cards/ plus fixtures/control/card.json.
+  With paths:   verify just those cards (relative to where you are, or absolute;
+                /dev/stdin works for a card piped in).
+
+  Each card is validated against reference/schema/lesson-card.v1.json, then the input it names
+  is re-read and every span re-sliced. Failures print a code, the card's text and the input's bytes.
+  Exit 0 = every card verified, 1 = at least one did not, 2 = bad usage.`;
+
 let targets = process.argv.slice(2);
+if (targets.includes('--help') || targets.includes('-h')) { console.log(USAGE); process.exit(0); }
+const unknown = targets.find((a) => a.startsWith('-'));
+if (unknown) { console.error(`unknown option: ${unknown}\n\n${USAGE}`); process.exit(2); }
 if (targets.length === 0) {
   const cardsDir = join(ROOT, 'cards');
   targets = existsSync(cardsDir)
