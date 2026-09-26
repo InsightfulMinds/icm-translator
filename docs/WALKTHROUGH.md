@@ -1055,9 +1055,10 @@ Past those six:
 - **`title` has never fired at all.** All four shipped inputs carry `title: not in source`, and so
   does every fixture, control included. Nothing in this repo demonstrates the field holding a real
   value: the path is written and reachable, but unexercised.
-- **It has been run by hand only on macOS, on Node 22.22.1.** `.github/workflows/check.yml` also
-  runs the four commands on GitHub's Ubuntu and macOS runners for every push; the repo's Actions tab
-  shows the latest result. Never on Windows, never on another Node major. The code uses Node builtins
+- **It has been run on macOS and Linux, never on Windows.** By hand on macOS with Node 22.22.1, and
+  by `.github/workflows/check.yml` on every push on GitHub's Ubuntu and macOS runners, whose first
+  run, after the deadline, passed on Ubuntu 24.04 and macOS 26 with Node 22.23.2 (the repo's Actions
+  tab shows the latest). Never on another Node major. The code uses Node builtins
   only, with no dependencies and no shell-outs, but two things make Windows unlikely to work rather
   than merely untested: the verifier's repo-escape check compares paths with a `/` separator
   (`srcPath.startsWith(ROOT + '/')` in `checker/verify-traces.mjs`), so every card would be refused

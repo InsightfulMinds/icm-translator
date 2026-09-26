@@ -7,7 +7,8 @@ The input is the text of a recording: a Loom run through Whisper, a YouTube capt
 meeting transcript. Usually one enormous line, no punctuation to speak of, no speaker labels. The
 output is a JSON card with the same fields in the same order every time: who spoke, what was claimed,
 the numbers, the steps, what got defined. Every value on the card carries the byte range of the input
-it was cut from. A field with nothing behind it says `not in source`. Input that fits no field is
+it was cut from, like `{ "text": "$5,800", "span": { "start": 700, "end": 706 } }`, and bytes 700 to
+706 of that input read exactly `$5,800`. A field with nothing behind it says `not in source`. Input that fits no field is
 listed under `unmapped` with a reason, so the card accounts for the whole file.
 
 No model runs at conversion time. `checker/convert.mjs` is a plain script: every quoted value on a
@@ -37,8 +38,8 @@ node checker/shape-diff.mjs
 node checker/selftest.mjs
 ```
 
-No dependencies, no install, no network. Node 22+. When all is well, the last line each check
-prints is below. The verifier's five cards are the four in `cards/` plus the fixture control card.
+No dependencies, no install, no network. Node 22+, tested on macOS and Ubuntu. When all is well, the
+last line each check prints is below. The verifier's five cards are the four in `cards/` plus the fixture control card.
 
 ```
 All 5 card(s) verified against their inputs.
@@ -404,9 +405,10 @@ Other facts worth knowing before you rely on it:
   the tables live in `rules.md` where you can read them.
 - One profile ships, `lesson-card.v1`. A second output shape would need new extraction code, not
   just a new schema file. See [Room to expand](docs/WALKTHROUGH.md#room-to-expand).
-- It has been run by hand only on macOS, on Node 22.22.1. `.github/workflows/check.yml` also runs
-  the four commands on GitHub's Ubuntu and macOS runners; the repo's Actions tab shows the latest
-  result. It is not expected to work on Windows, and has not been tried there. The verifier's
+- It has been run by hand on macOS (Node 22.22.1), and `.github/workflows/check.yml` runs the four
+  commands on every push on GitHub's Ubuntu and macOS runners. Its first run, after the deadline,
+  passed on Ubuntu 24.04 and macOS 26 with Node 22.23.2; the repo's Actions tab shows the latest.
+  It is not expected to work on Windows, and has not been tried there. The verifier's
   repo-escape check compares paths with a `/` separator (`srcPath.startsWith(ROOT + '/')` in
   `checker/verify-traces.mjs`), so every card would be refused as escaping the repo, and a checkout
   that rewrites line endings to CRLF changes the bytes that three of the four inputs' hashes and
