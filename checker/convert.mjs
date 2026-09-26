@@ -297,11 +297,12 @@ function convert(inputRel) {
 const USAGE = `usage: node checker/convert.mjs [<transcript.txt> ...]
 
   No arguments: convert every numbered transcript in inputs/ (NN-name.txt).
-  With paths:   convert just those files. Each must be a UTF-8 text file inside this repo,
-                normally under inputs/. Paths may be absolute or relative to where you are.
+  With paths:   convert just those files. Each must be a UTF-8 text file under inputs/ (or
+                fixtures/), the only places the verifier re-reads a source from. Paths may be
+                absolute or relative to where you are.
 
   Writes cards/<stem>.card.json per input and prints one summary line per card.
-  Exit 0 = every card written, 1 = an input is missing or outside the repo, 2 = bad usage.
+  Exit 0 = every card written, 1 = an input is missing or not under inputs/, 2 = bad usage.
   Next:   node checker/verify-traces.mjs cards/<stem>.card.json`;
 
 const args = process.argv.slice(2);
@@ -311,19 +312,28 @@ if (unknown) { console.error(`unknown option: ${unknown}\n\n${USAGE}`); process.
 
 // A path argument may be relative to the current directory or to the repo root, or absolute. It is
 // compared after realpath on both sides, so a checkout reached through a symlink (macOS /tmp is one)
-// still counts as inside the repo. The card's source.file is always the repo-relative path.
-const REAL_ROOT = realpathSync(ROOT);
+// or typed in another letter case still counts as inside the repo. The card's source.file is the
+// repo-relative path, and it has to sit under inputs/ or fixtures/, the same rule verify-traces.mjs
+// applies (SOURCE_FILE_NOT_ALLOWED): a card cut from anywhere else could never verify.
+const REAL_ROOT = realpathSync.native(ROOT);
 function repoRelative(arg) {
+  let outside = null;
+  let dir = false;
   for (const p of [resolve(arg), resolve(ROOT, arg)]) {
-    if (!existsSync(p) || !statSync(p).isFile()) continue;
-    const rel = relative(REAL_ROOT, realpathSync(p));
-    if (rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel)) {
-      console.error(`${arg} is outside the repo. Copy it into inputs/ first: a card must cite a file the verifier can re-read inside the repo.`);
+    if (!existsSync(p)) continue;
+    if (!statSync(p).isFile()) { dir = true; continue; }
+    const real = realpathSync.native(p);
+    const rel = relative(REAL_ROOT, real).split(sep).join('/');
+    if (rel === '..' || rel.startsWith('../') || isAbsolute(rel)) { outside ??= real; continue; }
+    if (!/^(inputs|fixtures)\//.test(rel)) {
+      console.error(`${arg} is not under inputs/ or fixtures/. Copy it into inputs/ first: the verifier only re-reads sources there.`);
       process.exit(1);
     }
-    return rel.split(sep).join('/');
+    return rel;
   }
-  console.error(`input not found: ${arg}`);
+  if (outside) console.error(`${arg} resolves to ${outside}, outside the repo. Copy it into inputs/ first: the verifier only re-reads sources there.`);
+  else if (dir) console.error(`${arg} is a directory. Give a .txt file, or no argument to convert every inputs/NN-name.txt.`);
+  else console.error(`input not found: ${arg}`);
   process.exit(1);
 }
 

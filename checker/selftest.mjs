@@ -19,7 +19,7 @@
 // The verifier is run as a CHILD PROCESS, not imported, so its real exit code is asserted rather
 // than a return value that happens to look right.
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync, mkdtempSync, symlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, readdirSync, mkdtempSync, symlinkSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { join, dirname, basename } from 'node:path';
@@ -367,10 +367,11 @@ console.log('\n── the command line: --help, bad usage, and paths from anywhe
   // other test here builds paths from ROOT itself, so none of them could see it.
   for (const s of ['convert', 'verify-traces', 'shape-diff', 'selftest']) {
     const script = join(ROOT, 'checker', `${s}.mjs`);
-    const h = spawnSync(process.execPath, [script, '--help'], { encoding: 'utf8' });
+    // The timeout bounds the case where selftest's own guard regresses and --help reruns the suite.
+    const h = spawnSync(process.execPath, [script, '--help'], { encoding: 'utf8', timeout: 60000 });
     if (h.status === 0 && /^usage: node checker\//.test(h.stdout)) pass(`${s}.mjs --help prints usage, exits 0`);
     else fail(`${s}.mjs --help prints usage, exits 0`, `exited ${h.status}: ${(h.stdout + h.stderr).slice(0, 120)}`);
-    const u = spawnSync(process.execPath, [script, '--no-such-option'], { encoding: 'utf8' });
+    const u = spawnSync(process.execPath, [script, '--no-such-option'], { encoding: 'utf8', timeout: 60000 });
     if (u.status === 2) pass(`${s}.mjs rejects an unknown option, exits 2`);
     else fail(`${s}.mjs rejects an unknown option, exits 2`, `exited ${u.status}`);
   }
@@ -386,6 +387,15 @@ console.log('\n── the command line: --help, bad usage, and paths from anywhe
     if (o.status === 1 && /outside the repo/.test(o.stderr)) pass('convert.mjs refuses a transcript outside the repo, exits 1', 'and says to copy it into inputs/');
     else fail('convert.mjs refuses a transcript outside the repo, exits 1', `exited ${o.status}: ${o.stderr.trim()}`);
 
+    // Inside the repo is not enough: the verifier re-reads sources only from inputs/ and fixtures/,
+    // so a card cut from README.md would be written, then fail SOURCE_FILE_NOT_ALLOWED and turn the
+    // headline no-argument verify run red. The converter refuses it up front and writes nothing.
+    const readmeCard = join(ROOT, 'cards', 'README.md.card.json');
+    const n = spawnSync(process.execPath, [CONVERTER, join(ROOT, 'README.md')], { encoding: 'utf8' });
+    if (n.status === 1 && /not under inputs\//.test(n.stderr) && !existsSync(readmeCard)) pass('convert.mjs refuses a repo file outside inputs/ and fixtures/, exits 1', 'and writes no card');
+    else fail('convert.mjs refuses a repo file outside inputs/ and fixtures/, exits 1', `exited ${n.status}: ${n.stderr.trim()}`);
+    rmSync(readmeCard, { force: true });
+
     symlinkSync(ROOT, link, 'junction'); // the type is ignored off Windows, where a dir link needs it
     const l = spawnSync(process.execPath, [CONVERTER, join(link, 'fixtures/e2e-01-sensor-calibration.txt')], { encoding: 'utf8' });
     const card = l.status === 0 && existsSync(linkedCard) ? JSON.parse(readFileSync(linkedCard, 'utf8')) : null;
@@ -393,6 +403,7 @@ console.log('\n── the command line: --help, bad usage, and paths from anywhe
     else fail('convert.mjs accepts an absolute path through a symlinked checkout', `exited ${l.status}: ${(l.stdout + l.stderr).trim()} source.file=${card?.source?.file}`);
   } finally {
     rmSync(linkedCard, { force: true });
+    try { unlinkSync(link); } catch {} // remove the link itself first so no recursive delete can follow it
     rmSync(tmp, { recursive: true, force: true });
   }
 }
