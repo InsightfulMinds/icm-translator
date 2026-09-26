@@ -3,24 +3,24 @@
 Turns a raw session transcript into a lesson card with a fixed shape, and ships the checker that
 proves every value on the card was cut from the input.
 
-The input is the text of a recording: a Loom run through Whisper, a YouTube caption track, any
-meeting transcript. Usually one enormous line, no punctuation to speak of, no speaker labels. The
-output is a JSON card with the same fields in the same order every time: who spoke, what was claimed,
-the numbers, the steps, what got defined. Every value on the card carries the byte range of the input
-it was cut from, like `{ "text": "$5,800", "span": { "start": 700, "end": 706 } }`, and bytes 700 to
-706 of that input read exactly `$5,800`. A field with nothing behind it says `not in source`. Input that fits no field is
-listed under `unmapped` with a reason, so the card accounts for the whole file.
+The input is the text of a recording: a Loom run through Whisper, a YouTube caption track, or any
+meeting transcript, usually one enormous line with almost no punctuation and no speaker labels.
+The output is a JSON card with the same fields in the same order every time: who spoke, what was
+claimed, the numbers, the steps, what got defined. Every value carries the input byte range it was
+cut from, like `{ "text": "$5,800", "span": { "start": 700, "end": 706 } }`, and bytes 700 to 706
+of the input read exactly `$5,800`. A field with nothing behind it says `not in source`. Input
+that fits no field goes under `unmapped` with a reason, so the card accounts for the whole file.
 
-No model runs at conversion time. `checker/convert.mjs` is a plain script: every quoted value on a
-card is cut out of the input, and the only other strings it writes are fixed schema labels and
-source metadata. The same folder also works as a Claude project (the brief this was built for asks
-for that), and the same checker verifies a card either way, because it cannot tell who wrote it.
+No model runs at conversion time. `checker/convert.mjs` is a plain script: it cuts every quoted
+value on a card out of the input, and the only other strings it writes are fixed schema labels
+and source metadata. The same folder also works as a Claude project, as the brief it was built
+for asks, and the same checker verifies a card either way, because it cannot tell who wrote it.
 
 ![A long ribbon of speech waveform on the left, a structured card of empty fields on the right, and thin amber threads tying each field back to an exact segment of the ribbon](docs/hero.jpg)
 
 **The one property worth checking:** nothing in an output exists that was not in the input. The
-checker enforces that for every span-backed value, and each check is a command you can run. The ways
-a card could still misrepresent the source while passing those checks are under [Limits](#limits).
+checker enforces that for every span-backed value, and each check is a command you can run. How a
+card could still misrepresent the source while passing those checks is under [Limits](#limits).
 
 ```bash
 git clone https://github.com/InsightfulMinds/icm-translator && cd icm-translator
@@ -38,8 +38,8 @@ node checker/shape-diff.mjs
 node checker/selftest.mjs
 ```
 
-No dependencies, no install, no network. Node 22+, tested on macOS and Ubuntu. When all is well, the
-last line each check prints is below. The verifier's five cards are the four in `cards/` plus the fixture control card.
+No dependencies, no install, no network. Node 22+, tested on macOS and Ubuntu. When all is well,
+the last line each check prints is below.
 
 ```
 All 5 card(s) verified against their inputs.
@@ -47,12 +47,11 @@ SHAPE HOLDS — 4 cards, identical field list and order. Wrote audits/SHAPE-DIFF
 156 passed, 0 failed.
 ```
 
-Every command answers `--help`, and all four follow one exit-code rule: `0` pass, `1` fail,
-`2` bad usage.
+The verifier's five cards are the four in `cards/` plus the fixture control card. Every command
+answers `--help`, and all four follow one exit-code rule: `0` pass, `1` fail, `2` bad usage.
 
-This page is the short version. The long one, with every command's full output, is
-[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md). It began as the previous README, which is in the git
-history too, and is kept in step with the code.
+The long version, with every command's full output, is [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md).
+It began as the previous README, which is in the git history, and is kept in step with the code.
 
 On this page: [the two terms](#two-words-this-page-leans-on) ·
 [your own transcript](#your-own-transcript-in-under-a-minute) ·
