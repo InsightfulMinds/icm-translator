@@ -1,0 +1,31 @@
+# Runs the README's four commands on a clean checkout, on Linux and macOS.
+# Windows is deliberately absent: see "Limits" in README.md for why it is not expected to pass.
+name: check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quickstart:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --version
+      - run: node checker/convert.mjs
+      - name: re-running convert changes only generated_utc
+        run: test "$(git diff -U0 -- cards/ | grep -E '^[+-][^+-]' | grep -vc generated_utc)" = 0
+      - run: node checker/verify-traces.mjs
+      - run: node checker/shape-diff.mjs
+      - run: node checker/selftest.mjs

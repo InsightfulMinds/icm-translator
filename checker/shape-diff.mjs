@@ -25,7 +25,7 @@
 //   vanished, and that is drift.
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -116,7 +116,8 @@ const cardsDir = process.env.CARDS_DIR ? resolve(process.env.CARDS_DIR) : join(R
 const REPORT = process.env.CARDS_DIR ? null : join(ROOT, 'audits/SHAPE-DIFF.md');
 const files = existsSync(cardsDir) ? readdirSync(cardsDir).filter((f) => f.endsWith('.json')).sort() : [];
 if (files.length < 2) {
-  console.error(`FATAL: need at least 2 cards to diff, found ${files.length} in cards/`);
+  const shown = relative(process.cwd(), cardsDir);
+  console.error(`FATAL: need at least 2 cards to diff, found ${files.length} in ${shown.startsWith('..') ? cardsDir : shown || '.'}/. Run node checker/convert.mjs first.`);
   process.exit(1);
 }
 const cards = files.map((f) => ({ name: f, doc: JSON.parse(readFileSync(join(cardsDir, f), 'utf8')) }));
